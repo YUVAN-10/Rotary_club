@@ -40,6 +40,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
     memberAddress: '',
     businessAddress: '',
     vertical: '',
+    customVertical: '',
     profilePhoto: '',
     status: 'Pending'
   });
@@ -112,16 +113,23 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
 
       setUploadProgress(80);
 
+      const resolvedVertical = formData.vertical === 'Other'
+        ? (formData.customVertical.trim() || 'Other')
+        : formData.vertical;
+
       // Auto-set status to Completed if all fields are filled
       let computedStatus = formData.status;
-      if (finalPhotoUrl && formData.businessAddress.trim() && formData.vertical) {
+      if (finalPhotoUrl && formData.businessAddress.trim() && resolvedVertical) {
         computedStatus = 'Completed';
       }
 
       // Add to Firestore
       const res = await addSingleMember({
-        ...formData,
+        name: formData.name.trim(),
         phone: cleanPhone,
+        memberAddress: formData.memberAddress.trim(),
+        businessAddress: formData.businessAddress.trim(),
+        vertical: resolvedVertical,
         profilePhoto: finalPhotoUrl,
         status: computedStatus
       });
@@ -140,6 +148,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
           memberAddress: '',
           businessAddress: '',
           vertical: '',
+          customVertical: '',
           profilePhoto: '',
           status: 'Pending'
         });
@@ -317,7 +326,14 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
               </label>
               <select
                 value={formData.vertical}
-                onChange={(e) => setFormData({ ...formData, vertical: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({
+                    ...formData,
+                    vertical: val,
+                    customVertical: val === 'Other' ? formData.customVertical : ''
+                  });
+                }}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
               >
                 <option value="">Select Vertical...</option>
@@ -325,6 +341,21 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
                   <option key={v} value={v}>{v}</option>
                 ))}
               </select>
+
+              {formData.vertical === 'Other' && (
+                <div className="mt-2.5 animate-fadeIn">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">
+                    Specify Vertical / Sector
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customVertical}
+                    onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
+                    placeholder="e.g. Textile, Architecture, Solar..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
+                  />
+                </div>
+              )}
             </div>
 
             <div>

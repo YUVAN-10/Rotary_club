@@ -71,6 +71,7 @@ export default function MemberFormPage() {
   const [memberAddress, setMemberAddress] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
   const [vertical, setVertical] = useState('');
+  const [customVertical, setCustomVertical] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [photoError, setPhotoError] = useState('');
@@ -144,7 +145,17 @@ export default function MemberFormPage() {
     setPhone(record.phone || '');
     setMemberAddress(record.memberAddress || '');
     setBusinessAddress(record.businessAddress || '');
-    setVertical(record.vertical || '');
+    const recVertical = record.vertical || '';
+    if (VERTICAL_OPTIONS.includes(recVertical) && recVertical !== 'Other') {
+      setVertical(recVertical);
+      setCustomVertical('');
+    } else if (recVertical) {
+      setVertical('Other');
+      setCustomVertical(recVertical === 'Other' ? '' : recVertical);
+    } else {
+      setVertical('');
+      setCustomVertical('');
+    }
     if (record.profilePhoto) {
       setPhotoPreview(record.profilePhoto);
     } else {
@@ -217,8 +228,10 @@ export default function MemberFormPage() {
       return;
     }
 
-    if (!vertical) {
-      addToast('Please select your business vertical / sector.', 'error');
+    const resolvedVertical = vertical === 'Other' ? (customVertical.trim() || 'Other') : vertical;
+
+    if (!vertical || (vertical === 'Other' && !customVertical.trim())) {
+      addToast('Please select or specify your business vertical / sector.', 'error');
       return;
     }
 
@@ -252,7 +265,7 @@ export default function MemberFormPage() {
         phone: cleanPhone,
         memberAddress: memberAddress.trim(),
         businessAddress: businessAddress.trim(),
-        vertical,
+        vertical: resolvedVertical,
         profilePhoto: finalPhotoUrl
       });
 
@@ -269,7 +282,7 @@ export default function MemberFormPage() {
         phone: cleanPhone,
         memberAddress: memberAddress.trim(),
         businessAddress: businessAddress.trim(),
-        vertical,
+        vertical: resolvedVertical,
         profilePhoto: finalPhotoUrl,
         status: 'Completed'
       });
@@ -305,6 +318,7 @@ export default function MemberFormPage() {
     setMemberAddress('');
     setBusinessAddress('');
     setVertical('');
+    setCustomVertical('');
     setPhotoFile(null);
     setPhotoPreview('');
     setSubmittedData(null);
@@ -766,7 +780,13 @@ export default function MemberFormPage() {
                 <select
                   required
                   value={vertical}
-                  onChange={(e) => setVertical(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setVertical(val);
+                    if (val !== 'Other') {
+                      setCustomVertical('');
+                    }
+                  }}
                   className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white font-medium text-slate-800"
                 >
                   <option value="">Select your business vertical...</option>
@@ -776,6 +796,22 @@ export default function MemberFormPage() {
                     </option>
                   ))}
                 </select>
+
+                {vertical === 'Other' && (
+                  <div className="mt-3 animate-fadeIn">
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">
+                      Specify Your Vertical / Sector <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customVertical}
+                      onChange={(e) => setCustomVertical(e.target.value)}
+                      placeholder="e.g. Textile Manufacturing, Architecture, Solar Energy..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Progress bar during submission */}
