@@ -3,19 +3,8 @@ import { X, Edit3, Check, RefreshCw, Upload, Camera } from 'lucide-react';
 import { updateMemberAdmin } from '../services/memberService';
 import { uploadProfilePhoto } from '../services/storageService';
 import { useToast } from './Toast';
-
-const VERTICAL_OPTIONS = [
-  'IT Services',
-  'Education',
-  'Healthcare',
-  'Finance',
-  'Retail',
-  'Manufacturing',
-  'Real Estate',
-  'Agriculture',
-  'Marketing',
-  'Other'
-];
+import SearchableVerticalSelect from './SearchableVerticalSelect';
+import { VERTICAL_OPTIONS } from '../constants/verticals';
 
 export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) {
   const { addToast } = useToast();
@@ -239,44 +228,25 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
             />
           </div>
 
-          {/* Vertical dropdown */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Vertical / Sector
-            </label>
-            <select
-              value={formData.vertical}
-              onChange={(e) => {
-                const val = e.target.value;
-                setFormData({
-                  ...formData,
-                  vertical: val,
-                  customVertical: val === 'Other' ? formData.customVertical : ''
-                });
-              }}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
-            >
-              <option value="">Select Vertical...</option>
-              {VERTICAL_OPTIONS.map((v) => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
-
-            {formData.vertical === 'Other' && (
-              <div className="mt-2.5 animate-fadeIn">
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Specify Vertical / Sector
-                </label>
-                <input
-                  type="text"
-                  value={formData.customVertical}
-                  onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
-                  placeholder="e.g. Textile, Architecture, Solar..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
-                />
-              </div>
-            )}
-          </div>
+          {/* Vertical searchable dropdown */}
+          <SearchableVerticalSelect
+            value={formData.vertical}
+            onChange={(val) => {
+              setFormData({
+                ...formData,
+                vertical: val,
+                customVertical: val === 'Other' ? formData.customVertical : ''
+              });
+            }}
+            customValue={formData.customVertical}
+            onCustomChange={(customVal) => {
+              setFormData({
+                ...formData,
+                customVertical: customVal
+              });
+            }}
+            label="Vertical / Sector"
+          />
 
           {/* Account Status */}
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">

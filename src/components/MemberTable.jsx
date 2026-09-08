@@ -20,17 +20,31 @@ import {
   Power
 } from 'lucide-react';
 import { useToast } from './Toast';
+import { VERTICAL_OPTIONS } from '../constants/verticals';
 
 const VERTICAL_COLORS = {
   'IT Services': 'bg-blue-50 text-blue-700 border-blue-200',
+  'Software Development': 'bg-sky-50 text-sky-700 border-sky-200',
   'Education': 'bg-indigo-50 text-indigo-700 border-indigo-200',
   'Healthcare': 'bg-rose-50 text-rose-700 border-rose-200',
+  'Hospital': 'bg-rose-50 text-rose-700 border-rose-200',
   'Finance': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'Finance & Investment': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'Financial Services': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'Banking': 'bg-emerald-50 text-emerald-700 border-emerald-200',
   'Retail': 'bg-amber-50 text-amber-700 border-amber-200',
+  'Retail Business': 'bg-amber-50 text-amber-700 border-amber-200',
   'Manufacturing': 'bg-slate-100 text-slate-700 border-slate-300',
+  'Textile Manufacturing': 'bg-violet-50 text-violet-700 border-violet-200',
+  'Textile Trading': 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
   'Real Estate': 'bg-purple-50 text-purple-700 border-purple-200',
+  'Property Developer': 'bg-purple-50 text-purple-700 border-purple-200',
   'Agriculture': 'bg-lime-50 text-lime-800 border-lime-200',
   'Marketing': 'bg-pink-50 text-pink-700 border-pink-200',
+  'Digital Marketing': 'bg-pink-50 text-pink-700 border-pink-200',
+  'Civil Construction': 'bg-amber-50 text-amber-800 border-amber-200',
+  'Solar Energy': 'bg-yellow-50 text-yellow-800 border-yellow-200',
+  'Renewable Energy': 'bg-teal-50 text-teal-700 border-teal-200',
   'Other': 'bg-gray-50 text-gray-700 border-gray-200'
 };
 
@@ -207,24 +221,15 @@ export default function MemberTable({
                   setVerticalFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 cursor-pointer shadow-sm max-w-[160px] truncate"
+                className="text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 cursor-pointer shadow-sm max-w-[180px] truncate"
               >
-                <option value="ALL">All Verticals</option>
+                <option value="ALL">All Verticals (100)</option>
                 {Array.from(
                   new Set([
-                    'IT Services',
-                    'Education',
-                    'Healthcare',
-                    'Finance',
-                    'Retail',
-                    'Manufacturing',
-                    'Real Estate',
-                    'Agriculture',
-                    'Marketing',
-                    'Other',
+                    ...VERTICAL_OPTIONS,
                     ...members.map((m) => m.vertical).filter(Boolean)
                   ])
-                ).map((v) => (
+                ).sort((a, b) => a.localeCompare(b)).map((v) => (
                   <option key={v} value={v}>
                     {v}
                   </option>

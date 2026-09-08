@@ -27,19 +27,8 @@ import confetti from 'canvas-confetti';
 import { getMemberByPhone, getAllMembers, updateMemberProfile } from '../services/memberService';
 import { uploadProfilePhoto, validateImageFile } from '../services/storageService';
 import { useToast } from '../components/Toast';
-
-const VERTICAL_OPTIONS = [
-  'IT Services',
-  'Education',
-  'Healthcare',
-  'Finance',
-  'Retail',
-  'Manufacturing',
-  'Real Estate',
-  'Agriculture',
-  'Marketing',
-  'Other'
-];
+import SearchableVerticalSelect from '../components/SearchableVerticalSelect';
+import { VERTICAL_OPTIONS } from '../constants/verticals';
 
 export default function MemberFormPage() {
   const [searchParams] = useSearchParams();
@@ -786,46 +775,20 @@ export default function MemberFormPage() {
               </div>
 
               {/* Vertical / Industry Classification (Editable, Required) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Vertical / Classification <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={vertical}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setVertical(val);
-                    if (val !== 'Other') {
-                      setCustomVertical('');
-                    }
-                  }}
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white font-medium text-slate-800"
-                >
-                  <option value="">Select your business vertical...</option>
-                  {VERTICAL_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-
-                {vertical === 'Other' && (
-                  <div className="mt-3 animate-fadeIn">
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      Specify Your Vertical / Sector <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={customVertical}
-                      onChange={(e) => setCustomVertical(e.target.value)}
-                      placeholder="e.g. Textile Manufacturing, Architecture, Solar Energy..."
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
-                    />
-                  </div>
-                )}
-              </div>
+              <SearchableVerticalSelect
+                required
+                value={vertical}
+                onChange={(val) => {
+                  setVertical(val);
+                  if (val !== 'Other') {
+                    setCustomVertical('');
+                  }
+                }}
+                customValue={customVertical}
+                onCustomChange={(customVal) => setCustomVertical(customVal)}
+                label="Vertical / Classification"
+                placeholder="Select your business vertical / category..."
+              />
 
               {/* Progress bar during submission */}
               {isSubmitting && (
