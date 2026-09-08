@@ -27,7 +27,6 @@ export default function SearchableVerticalSelect({
   const [selectedLetter, setSelectedLetter] = useState('ALL');
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
-  const listContainerRef = useRef(null);
 
   // Close when clicking outside
   useEffect(() => {
@@ -40,11 +39,12 @@ export default function SearchableVerticalSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Auto focus search input when opened
+  // Auto focus & smooth scroll into view when opened
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
+        dropdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     } else {
       setSearchTerm('');
@@ -52,12 +52,12 @@ export default function SearchableVerticalSelect({
     }
   }, [isOpen]);
 
-  // Extract all available letters (A to Z) present in VERTICAL_OPTIONS
+  // All alphabet letters A to Z
   const lettersList = useMemo(() => {
     return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   }, []);
 
-  // Count items per letter
+  // Count categories per letter
   const letterCounts = useMemo(() => {
     const counts = {};
     VERTICAL_OPTIONS.forEach((opt) => {
@@ -90,7 +90,7 @@ export default function SearchableVerticalSelect({
     });
   }, [searchTerm, selectedLetter]);
 
-  // Group filtered options by starting letter for easy visual scanning
+  // Group filtered options by starting letter for clean hierarchy
   const groupedOptions = useMemo(() => {
     const groups = {};
     filteredOptions.forEach((opt) => {
@@ -120,7 +120,7 @@ export default function SearchableVerticalSelect({
   const isOther = value === 'Other';
 
   return (
-    <div className={`space-y-1.5 relative ${className}`} ref={dropdownRef}>
+    <div className={`space-y-1.5 ${className}`} ref={dropdownRef}>
       {label && (
         <div className="flex items-center justify-between">
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -128,13 +128,13 @@ export default function SearchableVerticalSelect({
           </label>
           {value && (
             <span className="text-[11px] font-semibold text-rotary-royal bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-              1 category selected
+              1 selected
             </span>
           )}
         </div>
       )}
 
-      {/* Main Trigger Button */}
+      {/* Main Trigger Input Box */}
       <div
         onClick={() => setIsOpen((prev) => !prev)}
         className={`w-full px-4 py-3 rounded-2xl border text-sm transition-all cursor-pointer bg-white shadow-sm flex items-center justify-between gap-3 ${
@@ -189,14 +189,14 @@ export default function SearchableVerticalSelect({
 
       {error && <p className="text-xs text-rose-500 font-medium">{error}</p>}
 
-      {/* Dropdown Menu Panel */}
+      {/* Expandable Category Selection Panel (In-Flow to prevent any clipping) */}
       {isOpen && (
-        <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[440px]">
+        <div className="mt-2 bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden animate-in fade-in duration-200 flex flex-col">
           
           {/* Header Area */}
           <div className="p-3.5 bg-slate-50/90 border-b border-slate-200 space-y-3">
             
-            {/* Search Input */}
+            {/* Search Input Box */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -204,7 +204,7 @@ export default function SearchableVerticalSelect({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by category name (e.g. Textile, Solar, Health, Auto...)"
+                placeholder="Search by category (e.g. Textile, Solar, Health, Auto...)"
                 className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue text-slate-800 placeholder:text-slate-400 shadow-sm"
               />
               {searchTerm && (
@@ -218,7 +218,7 @@ export default function SearchableVerticalSelect({
               )}
             </div>
 
-            {/* Quick Alphabet Selector Grid (2 clean rows, NO horizontal scroll needed) */}
+            {/* Quick Alphabet Selector Grid (Wrapped cleanly, NO horizontal scroll needed) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                 <span className="flex items-center gap-1.5">
@@ -236,7 +236,6 @@ export default function SearchableVerticalSelect({
                 )}
               </div>
 
-              {/* Complete Alphabet Grid (Wrapped cleanly, no horizontal scrolling) */}
               <div className="flex flex-wrap items-center gap-1 bg-white p-2 rounded-xl border border-slate-200">
                 {/* All Button */}
                 <button
@@ -286,15 +285,12 @@ export default function SearchableVerticalSelect({
           </div>
 
           {/* Grouped Category Options List */}
-          <div 
-            ref={listContainerRef}
-            className="overflow-y-auto flex-1 p-2 space-y-3 divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-300"
-          >
+          <div className="max-h-72 overflow-y-auto p-2 space-y-3 divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-300">
             {filteredOptions.length === 0 ? (
-              <div className="py-10 text-center text-slate-400 px-4 space-y-2">
+              <div className="py-8 text-center text-slate-400 px-4 space-y-2">
                 <p className="text-sm font-bold text-slate-700">No categories found</p>
                 <p className="text-xs text-slate-500">
-                  Try another keyword or select "Other" to specify a custom category.
+                  Try another keyword or choose "Other" to enter your custom vertical.
                 </p>
                 <button
                   type="button"
@@ -359,18 +355,27 @@ export default function SearchableVerticalSelect({
             )}
           </div>
 
-          {/* Footer Bar */}
+          {/* Footer Actions */}
           <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
             <span className="font-medium">
-              Showing <span className="font-bold text-slate-800">{filteredOptions.length}</span> categories
+              Showing <span className="font-bold text-slate-800">{filteredOptions.length}</span> of 100 categories
             </span>
-            <button
-              type="button"
-              onClick={() => handleSelect('Other')}
-              className="text-xs font-bold text-rotary-navy hover:underline"
-            >
-              Cannot find? Choose "Other"
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleSelect('Other')}
+                className="text-xs font-bold text-rotary-navy hover:underline"
+              >
+                Choose "Other"
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-2.5 py-1 rounded-lg bg-slate-200/80 hover:bg-slate-300 text-slate-700 font-bold text-xs transition"
+              >
+                Close
+              </button>
+            </div>
           </div>
 
         </div>

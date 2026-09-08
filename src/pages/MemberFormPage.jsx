@@ -606,10 +606,10 @@ export default function MemberFormPage() {
 
         {/* ================= STEP 2: COMPLETE PROFILE FORM (ALL FIELDS EDITABLE) ================= */}
         {step === 2 && memberRecord && (
-          <div className="bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-200/90 animate-in fade-in duration-200">
             
             {/* Header */}
-            <div className="bg-gradient-to-r from-rotary-navy to-rotary-royal p-6 text-white">
+            <div className="bg-gradient-to-r from-rotary-navy to-rotary-royal p-6 text-white rounded-t-3xl">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-bold text-rotary-gold uppercase tracking-wider">
