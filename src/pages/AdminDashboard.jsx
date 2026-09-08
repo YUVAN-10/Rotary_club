@@ -17,7 +17,7 @@ import ExcelUploadModal from '../components/ExcelUploadModal';
 import AddMemberModal from '../components/AddMemberModal';
 import EditMemberModal from '../components/EditMemberModal';
 import MemberDetailModal from '../components/MemberDetailModal';
-import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import ToggleStatusModal from '../components/ToggleStatusModal';
 import { getAllMembers } from '../services/memberService';
 import { exportMembersToExcel } from '../services/excelService';
 import { useToast } from '../components/Toast';
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
   const [viewMember, setViewMember] = useState(null);
-  const [deleteMemberTarget, setDeleteMemberTarget] = useState(null);
+  const [toggleStatusTarget, setToggleStatusTarget] = useState(null);
 
   // Fetch all members from Firestore
   const fetchMembers = useCallback(async (showToastNotice = false) => {
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
                 Club Members Directory
               </h2>
               <p className="text-xs text-slate-500">
-                Search, filter, view, edit or delete member records
+                Search, filter, view, edit, enable or disable member records
               </p>
             </div>
             
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
             isLoading={isLoading}
             onViewMember={(m) => setViewMember(m)}
             onEditMember={(m) => setEditMember(m)}
-            onDeleteMember={(m) => setDeleteMemberTarget(m)}
+            onToggleStatus={(m) => setToggleStatusTarget(m)}
             onOpenUpload={() => setIsExcelModalOpen(true)}
             onOpenAdd={() => setIsAddModalOpen(true)}
           />
@@ -190,12 +190,16 @@ export default function AdminDashboard() {
           setViewMember(null);
           setEditMember(m);
         }}
+        onToggleStatus={(m) => {
+          setViewMember(null);
+          setToggleStatusTarget(m);
+        }}
       />
 
-      <DeleteConfirmModal
-        isOpen={!!deleteMemberTarget}
-        member={deleteMemberTarget}
-        onClose={() => setDeleteMemberTarget(null)}
+      <ToggleStatusModal
+        isOpen={!!toggleStatusTarget}
+        member={toggleStatusTarget}
+        onClose={() => setToggleStatusTarget(null)}
         onSuccess={() => fetchMembers()}
       />
 

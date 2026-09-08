@@ -4,7 +4,8 @@ import {
   Filter, 
   Eye, 
   Edit3, 
-  Trash2, 
+  UserCheck,
+  UserX,
   Phone, 
   MapPin, 
   Briefcase, 
@@ -12,11 +13,11 @@ import {
   Clock, 
   ChevronLeft, 
   ChevronRight, 
-  UserCheck, 
   MessageSquare,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Power
 } from 'lucide-react';
 import { useToast } from './Toast';
 
@@ -51,25 +52,32 @@ export default function MemberTable({
   isLoading = false,
   onViewMember,
   onEditMember,
+  onToggleStatus,
   onDeleteMember,
   onOpenUpload,
   onOpenAdd
 }) {
   const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Completed' | 'Pending'
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Completed' | 'Pending' | 'Active' | 'Disabled'
   const [verticalFilter, setVerticalFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState(null);
   const itemsPerPage = 10;
 
+  const handleToggleMember = onToggleStatus || onDeleteMember;
+
   // Filtered and searched members
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const completed = isMemberCompleted(member);
+      const isActive = member.isActive !== false;
+
       // Status filter
       if (statusFilter === 'Completed' && !completed) return false;
       if (statusFilter === 'Pending' && completed) return false;
+      if (statusFilter === 'Active' && !isActive) return false;
+      if (statusFilter === 'Disabled' && isActive) return false;
 
       // Vertical filter
       if (verticalFilter !== 'ALL' && member.vertical !== verticalFilter) return false;
@@ -110,6 +118,8 @@ export default function MemberTable({
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const activeCount = members.filter(m => m.isActive !== false).length;
+  const disabledCount = members.filter(m => m.isActive === false).length;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden">
@@ -175,6 +185,18 @@ export default function MemberTable({
               >
                 Pending ({members.filter(m => !isMemberCompleted(m)).length})
               </button>
+              {disabledCount > 0 && (
+                <button
+                  onClick={() => { setStatusFilter('Disabled'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    statusFilter === 'Disabled'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'hover:text-rose-700 text-rose-700'
+                  }`}
+                >
+                  Disabled ({disabledCount})
+                </button>
+              )}
             </div>
 
             {/* Vertical Filter Dropdown */}
@@ -260,9 +282,9 @@ export default function MemberTable({
                         </button>
                         <button
                           onClick={onOpenAdd}
-                          className="text-xs font-bold px-3 py-2 rounded-lg bg-rotary-gold text-rotary-navy hover:brightness-105 transition"
+                          className="text-xs font-bold px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
                         >
-                          Add Member
+                          Add Single Member
                         </button>
                       </div>
                     )}
@@ -271,69 +293,67 @@ export default function MemberTable({
               </tr>
             ) : (
               paginatedMembers.map((member) => {
-                const isCompleted = isMemberCompleted(member);
-                const verticalColor = VERTICAL_COLORS[member.vertical] || 'bg-slate-100 text-slate-600 border-slate-200';
+                const completed = isMemberCompleted(member);
+                const isEnabled = member.isActive !== false;
+                const verticalColor = VERTICAL_COLORS[member.vertical] || VERTICAL_COLORS['Other'];
+                const initial = (member.name || 'M').charAt(0).toUpperCase();
 
                 return (
-                  <tr
+                  <tr 
                     key={member.id}
-                    className="hover:bg-blue-50/40 transition-colors duration-150 group"
+                    className={`hover:bg-blue-50/40 transition-colors ${
+                      !isEnabled ? 'bg-slate-50/75 opacity-75' : ''
+                    }`}
                   >
-                    {/* Photo thumbnail */}
+                    {/* Photo */}
                     <td className="py-3 px-4 text-center">
-                      <div
-                        onClick={() => onViewMember(member)}
-                        className="w-11 h-11 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300 border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-rotary-gold transition flex items-center justify-center text-slate-700 font-bold text-sm"
-                        title="Click to view details"
-                      >
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-100 border border-slate-200 mx-auto flex items-center justify-center text-slate-600 font-bold text-sm shadow-sm relative">
                         {member.profilePhoto ? (
                           <img
                             src={member.profilePhoto}
-                            alt={member.name}
+                            alt={member.name || 'Member'}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              // If image fails to load, fallback to initials
+                              // If image fails to load, fallback to initial
                               e.target.style.display = 'none';
                             }}
                           />
                         ) : (
-                          <span>
-                            {(member.name || 'M')
-                              .split(' ')
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join('')
-                              .toUpperCase()}
-                          </span>
+                          <span>{initial}</span>
+                        )}
+                        {!isEnabled && (
+                          <span 
+                            title="Disabled"
+                            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border-2 border-white"
+                          />
                         )}
                       </div>
                     </td>
 
                     {/* Member Name */}
                     <td className="py-3 px-4 font-semibold text-slate-800">
-                      <div 
-                        onClick={() => onViewMember(member)}
-                        className="cursor-pointer hover:text-rotary-royal transition"
-                      >
-                        {member.name || 'Unnamed Member'}
-                      </div>
-                      <div className="text-[11px] text-slate-400 font-normal md:hidden mt-0.5 truncate max-w-[180px]">
-                        {member.memberAddress || 'No address provided'}
+                      <div className="flex items-center gap-1.5">
+                        <span className="hover:text-rotary-navy cursor-pointer" onClick={() => onViewMember(member)}>
+                          {member.name || <span className="text-slate-400 italic">Unnamed Member</span>}
+                        </span>
+                        {!isEnabled && (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                            Disabled
+                          </span>
+                        )}
                       </div>
                     </td>
 
                     {/* Phone Number */}
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 font-mono text-xs text-slate-700 font-medium">
                       {member.phone ? (
-                        <span className="font-mono font-medium text-slate-700 text-xs sm:text-sm">
-                          {member.phone}
+                        <span className="inline-flex items-center gap-1">
+                          <span>{member.phone}</span>
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-xs italic">No mobile</span>
+                        <span className="text-slate-300 italic">No phone</span>
                       )}
                     </td>
-
-
 
                     {/* Member Address */}
                     <td className="py-3 px-4 hidden md:table-cell text-slate-600 text-xs max-w-xs truncate" title={member.memberAddress}>
@@ -358,17 +378,24 @@ export default function MemberTable({
 
                     {/* Status */}
                     <td className="py-3 px-4 text-center">
-                      {isCompleted ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Completed</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                          <Clock className="w-3 h-3" />
-                          <span>Pending</span>
-                        </span>
-                      )}
+                      <div className="inline-flex flex-col items-center gap-1">
+                        {completed ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Completed</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <Clock className="w-3 h-3" />
+                            <span>Pending</span>
+                          </span>
+                        )}
+                        {!isEnabled && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-md text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
+                            Disabled
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Actions */}
@@ -406,13 +433,21 @@ export default function MemberTable({
                           <Edit3 className="w-4 h-4" />
                         </button>
 
-                        {/* Delete member */}
+                        {/* Enable / Disable Member */}
                         <button
-                          onClick={() => onDeleteMember(member)}
-                          title="Delete Member"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          onClick={() => handleToggleMember?.(member)}
+                          title={isEnabled ? "Disable Member" : "Enable Member"}
+                          className={`p-1.5 rounded-lg transition ${
+                            isEnabled
+                              ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                              : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700'
+                          }`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {isEnabled ? (
+                            <UserX className="w-4 h-4" />
+                          ) : (
+                            <UserCheck className="w-4 h-4" />
+                          )}
                         </button>
 
                       </div>

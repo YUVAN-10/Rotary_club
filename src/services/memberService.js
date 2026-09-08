@@ -108,6 +108,7 @@ export async function addSingleMember(memberData) {
       vertical: memberData.vertical || "",
       profilePhoto: memberData.profilePhoto || "",
       status: memberData.status || "Pending",
+      isActive: memberData.isActive !== false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
@@ -159,7 +160,6 @@ export async function bulkUploadMembers(records, onProgress) {
       // If phone is provided, check for duplicates
       if (cleanPhone) {
         if (cleanPhone.length !== 10) {
-          // If phone is invalid format but name is present, keep member with empty phone or raw digits
           console.warn(`Row ${i + 1}: Phone number ${row.phone} is not 10 digits, storing as is.`);
         }
 
@@ -186,6 +186,7 @@ export async function bulkUploadMembers(records, onProgress) {
         vertical: "",
         profilePhoto: "",
         status: "Pending",
+        isActive: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -259,8 +260,6 @@ export async function updateMemberProfile(memberId, profileData) {
   }
 }
 
-
-
 /**
  * Admin Edit Member (all fields)
  */
@@ -275,6 +274,7 @@ export async function updateMemberAdmin(memberId, memberData) {
       vertical: memberData.vertical || "",
       profilePhoto: memberData.profilePhoto || "",
       status: memberData.status || "Pending",
+      isActive: memberData.isActive !== false,
       updatedAt: serverTimestamp()
     };
 
@@ -282,6 +282,23 @@ export async function updateMemberAdmin(memberId, memberData) {
     return { success: true };
   } catch (error) {
     console.error("Error updating member:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Enable or Disable a member (Active / Inactive)
+ */
+export async function setMemberActiveStatus(memberId, isActive) {
+  try {
+    const memberDocRef = doc(db, MEMBERS_COLLECTION, memberId);
+    await updateDoc(memberDocRef, {
+      isActive: Boolean(isActive),
+      updatedAt: serverTimestamp()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating member active status:", error);
     return { success: false, error: error.message };
   }
 }

@@ -177,7 +177,8 @@ export function exportMembersToExcel(members, fileName = "Rotary_Erode_Central_M
     "Member Address": m.memberAddress || "",
     "Business Address": m.businessAddress || "",
     "Vertical / Classification": m.vertical || "Not specified",
-    "Status": m.status || "Pending",
+    "Profile Status": m.status || "Pending",
+    "Account Status": m.isActive === false ? "Disabled" : "Active",
     "Photo Attached": m.profilePhoto ? "Yes" : "No"
   }));
 
@@ -189,7 +190,8 @@ export function exportMembersToExcel(members, fileName = "Rotary_Erode_Central_M
     { wch: 35 },
     { wch: 35 },
     { wch: 22 },
-    { wch: 14 },
+    { wch: 15 },
+    { wch: 15 },
     { wch: 15 }
   ];
 

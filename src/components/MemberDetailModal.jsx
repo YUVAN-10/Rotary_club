@@ -11,16 +11,19 @@ import {
   Check, 
   Edit3,
   Award,
-  Building2
+  Building2,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { useToast } from './Toast';
 
-export default function MemberDetailModal({ isOpen, member, onClose, onEdit }) {
+export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onToggleStatus }) {
   const { addToast } = useToast();
   const [copied, setCopied] = useState(false);
 
   if (!isOpen || !member) return null;
 
+  const isEnabled = member.isActive !== false;
   const isCompleted = member.status === 'Completed' || Boolean(
     member.name?.trim() &&
     member.phone &&
@@ -118,6 +121,18 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit }) {
                     <span>Pending Submission</span>
                   </span>
                 )}
+
+                {isEnabled ? (
+                  <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full text-xs border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Active</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full text-xs border border-rose-200">
+                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span>Disabled</span>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -182,7 +197,31 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit }) {
               <span>{copied ? 'Link Copied!' : 'Copy Member Form Link'}</span>
             </button>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              {/* Enable / Disable Button */}
+              {onToggleStatus && (
+                <button
+                  onClick={() => onToggleStatus(member)}
+                  className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition active:scale-95 ${
+                    isEnabled
+                      ? 'border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                      : 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  {isEnabled ? (
+                    <>
+                      <UserX className="w-3.5 h-3.5" />
+                      <span>Disable Member</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Enable Member</span>
+                    </>
+                  )}
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   onClose();

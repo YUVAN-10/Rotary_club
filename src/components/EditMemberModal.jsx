@@ -26,7 +26,8 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
     businessAddress: '',
     vertical: '',
     customVertical: '',
-    profilePhoto: ''
+    profilePhoto: '',
+    isActive: true
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -42,7 +43,8 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
         businessAddress: member.businessAddress || '',
         vertical: isStandard ? recVertical : (recVertical ? 'Other' : ''),
         customVertical: isStandard ? '' : (recVertical === 'Other' ? '' : recVertical),
-        profilePhoto: member.profilePhoto || ''
+        profilePhoto: member.profilePhoto || '',
+        isActive: member.isActive !== false
       });
     }
   }, [member]);
@@ -99,7 +101,8 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
       businessAddress: formData.businessAddress.trim(),
       vertical: resolvedVertical,
       profilePhoto: formData.profilePhoto,
-      status: computedStatus
+      status: computedStatus,
+      isActive: Boolean(formData.isActive)
     });
     setIsSubmitting(false);
 
@@ -273,6 +276,45 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
                 />
               </div>
             )}
+          </div>
+
+          {/* Account Status */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Account Status
+            </label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="isActive"
+                  checked={formData.isActive === true}
+                  onChange={() => setFormData({ ...formData, isActive: true })}
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Active (Enabled)
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="isActive"
+                  checked={formData.isActive === false}
+                  onChange={() => setFormData({ ...formData, isActive: false })}
+                  className="w-4 h-4 text-rose-600 focus:ring-rose-500"
+                />
+                <span className="flex items-center gap-1 text-rose-700 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  Disabled
+                </span>
+              </label>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Disabled members cannot access or submit their profile form.
+            </p>
           </div>
 
           {/* Footer buttons */}

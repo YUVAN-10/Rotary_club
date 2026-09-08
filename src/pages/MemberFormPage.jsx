@@ -130,6 +130,12 @@ export default function MemberFormPage() {
     setIsVerifying(false);
 
     if (res.success && res.data) {
+      if (res.data.isActive === false) {
+        setMemberRecord(null);
+        setPhoneError('This member account is currently disabled. Please contact the Rotary administrator.');
+        addToast('This member account is currently disabled.', 'error');
+        return;
+      }
       handleSelectMemberRecord(res.data);
     } else {
       setMemberRecord(null);
@@ -140,6 +146,12 @@ export default function MemberFormPage() {
 
   // Select a member from the directory list
   const handleSelectMemberRecord = (record) => {
+    if (record.isActive === false) {
+      setPhoneError('This member account is currently disabled. Please contact the Rotary administrator.');
+      addToast('This member account is currently disabled.', 'error');
+      return;
+    }
+
     setMemberRecord(record);
     setName(record.name || '');
     setPhone(record.phone || '');
@@ -168,9 +180,10 @@ export default function MemberFormPage() {
 
   // Filter members in 'select' mode
   const filteredMemberList = useMemo(() => {
-    if (!memberSearchQuery.trim()) return memberList;
+    const list = memberList.filter(m => m.isActive !== false);
+    if (!memberSearchQuery.trim()) return list;
     const query = memberSearchQuery.toLowerCase();
-    return memberList.filter((m) => {
+    return list.filter((m) => {
       const nameMatch = (m.name || '').toLowerCase().includes(query);
       const addrMatch = (m.memberAddress || '').toLowerCase().includes(query);
       const phoneMatch = (m.phone || '').toLowerCase().includes(query);
