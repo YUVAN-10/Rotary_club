@@ -26,8 +26,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
     businessAddress: '',
     vertical: '',
     customVertical: '',
-    profilePhoto: '',
-    status: 'Pending'
+    profilePhoto: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -43,8 +42,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
         businessAddress: member.businessAddress || '',
         vertical: isStandard ? recVertical : (recVertical ? 'Other' : ''),
         customVertical: isStandard ? '' : (recVertical === 'Other' ? '' : recVertical),
-        profilePhoto: member.profilePhoto || '',
-        status: member.status || 'Pending'
+        profilePhoto: member.profilePhoto || ''
       });
     }
   }, [member]);
@@ -83,6 +81,16 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
       ? (formData.customVertical.trim() || 'Other')
       : formData.vertical;
 
+    // Auto-calculate status based on field completeness
+    const isComplete = Boolean(
+      formData.name.trim() &&
+      cleanPhone &&
+      formData.businessAddress.trim() &&
+      resolvedVertical &&
+      formData.profilePhoto
+    );
+    const computedStatus = isComplete ? 'Completed' : 'Pending';
+
     setIsSubmitting(true);
     const res = await updateMemberAdmin(member.id, {
       name: formData.name.trim(),
@@ -91,7 +99,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
       businessAddress: formData.businessAddress.trim(),
       vertical: resolvedVertical,
       profilePhoto: formData.profilePhoto,
-      status: formData.status
+      status: computedStatus
     });
     setIsSubmitting(false);
 
@@ -228,59 +236,43 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
             />
           </div>
 
-          {/* Vertical dropdown & Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Vertical / Sector
-              </label>
-              <select
-                value={formData.vertical}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFormData({
-                    ...formData,
-                    vertical: val,
-                    customVertical: val === 'Other' ? formData.customVertical : ''
-                  });
-                }}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
-              >
-                <option value="">Select Vertical...</option>
-                {VERTICAL_OPTIONS.map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
+          {/* Vertical dropdown */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Vertical / Sector
+            </label>
+            <select
+              value={formData.vertical}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFormData({
+                  ...formData,
+                  vertical: val,
+                  customVertical: val === 'Other' ? formData.customVertical : ''
+                });
+              }}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
+            >
+              <option value="">Select Vertical...</option>
+              {VERTICAL_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
 
-              {formData.vertical === 'Other' && (
-                <div className="mt-2.5 animate-fadeIn">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Specify Vertical / Sector
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.customVertical}
-                    onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
-                    placeholder="e.g. Textile, Architecture, Solar..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
+            {formData.vertical === 'Other' && (
+              <div className="mt-2.5 animate-fadeIn">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Specify Vertical / Sector
+                </label>
+                <input
+                  type="text"
+                  value={formData.customVertical}
+                  onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
+                  placeholder="e.g. Textile, Architecture, Solar..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
+                />
+              </div>
+            )}
           </div>
 
           {/* Footer buttons */}

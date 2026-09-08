@@ -41,8 +41,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
     businessAddress: '',
     vertical: '',
     customVertical: '',
-    profilePhoto: '',
-    status: 'Pending'
+    profilePhoto: ''
   });
 
   const [photoFile, setPhotoFile] = useState(null);
@@ -117,11 +116,15 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
         ? (formData.customVertical.trim() || 'Other')
         : formData.vertical;
 
-      // Auto-set status to Completed if all fields are filled
-      let computedStatus = formData.status;
-      if (finalPhotoUrl && formData.businessAddress.trim() && resolvedVertical) {
-        computedStatus = 'Completed';
-      }
+      // Auto-calculate status based on field completeness
+      const isComplete = Boolean(
+        formData.name.trim() &&
+        cleanPhone &&
+        formData.businessAddress.trim() &&
+        resolvedVertical &&
+        finalPhotoUrl
+      );
+      const computedStatus = isComplete ? 'Completed' : 'Pending';
 
       // Add to Firestore
       const res = await addSingleMember({
@@ -149,8 +152,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
           businessAddress: '',
           vertical: '',
           customVertical: '',
-          profilePhoto: '',
-          status: 'Pending'
+          profilePhoto: ''
         });
         setPhotoFile(null);
         setPhotoPreview('');
@@ -318,59 +320,43 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
             />
           </div>
 
-          {/* Vertical dropdown & Initial Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Vertical / Sector
-              </label>
-              <select
-                value={formData.vertical}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFormData({
-                    ...formData,
-                    vertical: val,
-                    customVertical: val === 'Other' ? formData.customVertical : ''
-                  });
-                }}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
-              >
-                <option value="">Select Vertical...</option>
-                {VERTICAL_OPTIONS.map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
+          {/* Vertical dropdown */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Vertical / Sector
+            </label>
+            <select
+              value={formData.vertical}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFormData({
+                  ...formData,
+                  vertical: val,
+                  customVertical: val === 'Other' ? formData.customVertical : ''
+                });
+              }}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
+            >
+              <option value="">Select Vertical...</option>
+              {VERTICAL_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
 
-              {formData.vertical === 'Other' && (
-                <div className="mt-2.5 animate-fadeIn">
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Specify Vertical / Sector
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.customVertical}
-                    onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
-                    placeholder="e.g. Textile, Architecture, Solar..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Initial Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
+            {formData.vertical === 'Other' && (
+              <div className="mt-2.5 animate-fadeIn">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Specify Vertical / Sector
+                </label>
+                <input
+                  type="text"
+                  value={formData.customVertical}
+                  onChange={(e) => setFormData({ ...formData, customVertical: e.target.value })}
+                  placeholder="e.g. Textile, Architecture, Solar..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white text-slate-800"
+                />
+              </div>
+            )}
           </div>
 
           {/* Progress bar during saving */}

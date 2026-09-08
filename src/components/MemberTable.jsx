@@ -33,6 +33,19 @@ const VERTICAL_COLORS = {
   'Other': 'bg-gray-50 text-gray-700 border-gray-200'
 };
 
+const isMemberCompleted = (m) => {
+  if (!m) return false;
+  if (m.status === 'Completed') return true;
+  return Boolean(
+    m.name?.trim() &&
+    m.phone &&
+    String(m.phone).replace(/\D/g, '').slice(-10) &&
+    m.businessAddress?.trim() &&
+    m.vertical?.trim() &&
+    m.profilePhoto?.trim()
+  );
+};
+
 export default function MemberTable({ 
   members = [], 
   isLoading = false,
@@ -53,9 +66,10 @@ export default function MemberTable({
   // Filtered and searched members
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
+      const completed = isMemberCompleted(member);
       // Status filter
-      if (statusFilter === 'Completed' && member.status !== 'Completed') return false;
-      if (statusFilter === 'Pending' && member.status === 'Completed') return false;
+      if (statusFilter === 'Completed' && !completed) return false;
+      if (statusFilter === 'Pending' && completed) return false;
 
       // Vertical filter
       if (verticalFilter !== 'ALL' && member.vertical !== verticalFilter) return false;
@@ -149,7 +163,7 @@ export default function MemberTable({
                     : 'hover:text-emerald-700'
                 }`}
               >
-                Completed ({members.filter(m => m.status === 'Completed').length})
+                Completed ({members.filter(isMemberCompleted).length})
               </button>
               <button
                 onClick={() => { setStatusFilter('Pending'); setCurrentPage(1); }}
@@ -159,7 +173,7 @@ export default function MemberTable({
                     : 'hover:text-amber-700'
                 }`}
               >
-                Pending ({members.filter(m => m.status !== 'Completed').length})
+                Pending ({members.filter(m => !isMemberCompleted(m)).length})
               </button>
             </div>
 
@@ -257,7 +271,7 @@ export default function MemberTable({
               </tr>
             ) : (
               paginatedMembers.map((member) => {
-                const isCompleted = member.status === 'Completed';
+                const isCompleted = isMemberCompleted(member);
                 const verticalColor = VERTICAL_COLORS[member.vertical] || 'bg-slate-100 text-slate-600 border-slate-200';
 
                 return (

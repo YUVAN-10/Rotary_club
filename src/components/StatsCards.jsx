@@ -1,10 +1,23 @@
 import React from 'react';
 import { Users, CheckCircle, Clock, TrendingUp, UserCheck, AlertTriangle } from 'lucide-react';
 
+const isMemberCompleted = (m) => {
+  if (!m) return false;
+  if (m.status === 'Completed') return true;
+  return Boolean(
+    m.name?.trim() &&
+    m.phone &&
+    String(m.phone).replace(/\D/g, '').slice(-10) &&
+    m.businessAddress?.trim() &&
+    m.vertical?.trim() &&
+    m.profilePhoto?.trim()
+  );
+};
+
 export default function StatsCards({ members = [] }) {
   const total = members.length;
-  const completed = members.filter((m) => m.status === 'Completed').length;
-  const pending = members.filter((m) => m.status === 'Pending' || !m.status).length;
+  const completed = members.filter(isMemberCompleted).length;
+  const pending = members.filter((m) => !isMemberCompleted(m)).length;
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (

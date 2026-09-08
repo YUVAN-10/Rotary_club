@@ -21,7 +21,14 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit }) {
 
   if (!isOpen || !member) return null;
 
-  const isCompleted = member.status === 'Completed';
+  const isCompleted = member.status === 'Completed' || Boolean(
+    member.name?.trim() &&
+    member.phone &&
+    String(member.phone).replace(/\D/g, '').slice(-10) &&
+    member.businessAddress?.trim() &&
+    member.vertical?.trim() &&
+    member.profilePhoto?.trim()
+  );
   const directFormUrl = member.phone 
     ? `${window.location.origin}/member-form?phone=${member.phone}`
     : `${window.location.origin}/member-form`;
