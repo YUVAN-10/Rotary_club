@@ -105,3 +105,56 @@ export const VERTICAL_OPTIONS = [
   "Yoga & Wellness",
   "Other"
 ];
+
+/**
+ * Parse a vertical string or array into standard vertical selections and custom vertical text
+ */
+export function parseVerticals(verticalVal) {
+  if (!verticalVal) return { standard: [], custom: '' };
+  
+  const rawList = Array.isArray(verticalVal)
+    ? verticalVal
+    : String(verticalVal).split(',').map(s => s.trim()).filter(Boolean);
+  
+  const standard = [];
+  const customItems = [];
+
+  rawList.forEach(item => {
+    if (VERTICAL_OPTIONS.includes(item) && item !== 'Other') {
+      if (!standard.includes(item)) standard.push(item);
+    } else if (item === 'Other') {
+      if (!standard.includes('Other')) standard.push('Other');
+    } else if (item) {
+      customItems.push(item);
+    }
+  });
+
+  if (customItems.length > 0 && !standard.includes('Other')) {
+    standard.push('Other');
+  }
+
+  return {
+    standard,
+    custom: customItems.join(', ')
+  };
+}
+
+/**
+ * Format standard vertical selections and custom text into a single comma-separated string
+ */
+export function formatVerticals(selectedList, customVal = '') {
+  const list = Array.isArray(selectedList) ? [...selectedList] : (selectedList ? [selectedList] : []);
+  const hasOther = list.includes('Other');
+  const filtered = list.filter(item => item !== 'Other');
+
+  if (hasOther && customVal && customVal.trim()) {
+    const customList = customVal.split(',').map(s => s.trim()).filter(Boolean);
+    customList.forEach(c => {
+      if (!filtered.includes(c)) filtered.push(c);
+    });
+  } else if (hasOther && (!customVal || !customVal.trim()) && filtered.length === 0) {
+    filtered.push('Other');
+  }
+
+  return filtered.join(', ');
+}

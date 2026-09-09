@@ -103,9 +103,15 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onT
               
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
                 {member.vertical ? (
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                    {member.vertical}
-                  </span>
+                  member.vertical.split(',').map((v) => {
+                    const trimmed = v.trim();
+                    if (!trimmed) return null;
+                    return (
+                      <span key={trimmed} className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        {trimmed}
+                      </span>
+                    );
+                  })
                 ) : (
                   <span className="text-xs text-slate-400 italic">Vertical not assigned</span>
                 )}
@@ -158,9 +164,23 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onT
                 <Tag className="w-4 h-4 text-rotary-gold" />
                 <span className="text-[11px] font-bold uppercase tracking-wider">Vertical / Sector</span>
               </div>
-              <p className="font-bold text-slate-800 text-sm mt-1">
-                {member.vertical || <span className="text-slate-400 font-normal italic">Not specified</span>}
-              </p>
+              <div className="mt-1">
+                {member.vertical ? (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {member.vertical.split(',').map((v) => {
+                      const trimmed = v.trim();
+                      if (!trimmed) return null;
+                      return (
+                        <span key={trimmed} className="inline-block px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white text-rotary-navy border border-slate-200 shadow-2xs">
+                          {trimmed}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span className="text-slate-400 font-normal italic text-sm">Not specified</span>
+                )}
+              </div>
             </div>
 
             {/* Residential Address Card */}

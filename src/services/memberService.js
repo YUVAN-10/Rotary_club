@@ -30,6 +30,8 @@ export async function getAllMembers() {
         ...docSnap.data()
       });
     });
+    // Sort members in alphabetical order by name
+    members.sort((a, b) => (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' }));
     return { success: true, data: members };
   } catch (error) {
     console.error("Error fetching members:", error);
@@ -43,6 +45,8 @@ export async function getAllMembers() {
           ...docSnap.data()
         });
       });
+      // Sort members in alphabetical order by name
+      members.sort((a, b) => (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' }));
       return { success: true, data: members };
     } catch (fallbackError) {
       console.error("Fallback error fetching members:", fallbackError);

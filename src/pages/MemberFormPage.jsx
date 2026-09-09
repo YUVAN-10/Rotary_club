@@ -28,7 +28,7 @@ import { getMemberByPhone, getAllMembers, updateMemberProfile } from '../service
 import { uploadProfilePhoto, validateImageFile } from '../services/storageService';
 import { useToast } from '../components/Toast';
 import SearchableVerticalSelect from '../components/SearchableVerticalSelect';
-import { VERTICAL_OPTIONS } from '../constants/verticals';
+import { VERTICAL_OPTIONS, parseVerticals, formatVerticals } from '../constants/verticals';
 
 export default function MemberFormPage() {
   const [searchParams] = useSearchParams();
@@ -59,7 +59,7 @@ export default function MemberFormPage() {
   const [phone, setPhone] = useState('');
   const [memberAddress, setMemberAddress] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
-  const [vertical, setVertical] = useState('');
+  const [vertical, setVertical] = useState([]);
   const [customVertical, setCustomVertical] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -146,17 +146,9 @@ export default function MemberFormPage() {
     setPhone(record.phone || '');
     setMemberAddress(record.memberAddress || '');
     setBusinessAddress(record.businessAddress || '');
-    const recVertical = record.vertical || '';
-    if (VERTICAL_OPTIONS.includes(recVertical) && recVertical !== 'Other') {
-      setVertical(recVertical);
-      setCustomVertical('');
-    } else if (recVertical) {
-      setVertical('Other');
-      setCustomVertical(recVertical === 'Other' ? '' : recVertical);
-    } else {
-      setVertical('');
-      setCustomVertical('');
-    }
+    const parsedVerts = parseVerticals(record.vertical || '');
+    setVertical(parsedVerts.standard);
+    setCustomVertical(parsedVerts.custom);
     if (record.profilePhoto) {
       setPhotoPreview(record.profilePhoto);
     } else {
@@ -167,17 +159,22 @@ export default function MemberFormPage() {
     addToast(`Welcome, ${record.name || 'Member'}!`, 'success');
   };
 
-  // Filter members in 'select' mode
+  // Filter members in 'select' mode and maintain alphabetical sorting by name (A–Z)
   const filteredMemberList = useMemo(() => {
     const list = memberList.filter(m => m.isActive !== false);
-    if (!memberSearchQuery.trim()) return list;
-    const query = memberSearchQuery.toLowerCase();
-    return list.filter((m) => {
-      const nameMatch = (m.name || '').toLowerCase().includes(query);
-      const addrMatch = (m.memberAddress || '').toLowerCase().includes(query);
-      const phoneMatch = (m.phone || '').toLowerCase().includes(query);
-      return nameMatch || addrMatch || phoneMatch;
-    });
+    let result = list;
+    if (memberSearchQuery.trim()) {
+      const query = memberSearchQuery.toLowerCase();
+      result = list.filter((m) => {
+        const nameMatch = (m.name || '').toLowerCase().includes(query);
+        const addrMatch = (m.memberAddress || '').toLowerCase().includes(query);
+        const phoneMatch = (m.phone || '').toLowerCase().includes(query);
+        return nameMatch || addrMatch || phoneMatch;
+      });
+    }
+    return [...result].sort((a, b) => 
+      (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' })
+    );
   }, [memberList, memberSearchQuery]);
 
   // Step 2: Photo selection & validation
@@ -230,10 +227,10 @@ export default function MemberFormPage() {
       return;
     }
 
-    const resolvedVertical = vertical === 'Other' ? (customVertical.trim() || 'Other') : vertical;
+    const resolvedVertical = formatVerticals(vertical, customVertical);
 
-    if (!vertical || (vertical === 'Other' && !customVertical.trim())) {
-      addToast('Please select or specify your business vertical / sector.', 'error');
+    if (!resolvedVertical.trim()) {
+      addToast('Please select or specify at least one business vertical / category.', 'error');
       return;
     }
 

@@ -4,7 +4,7 @@ import { updateMemberAdmin } from '../services/memberService';
 import { uploadProfilePhoto } from '../services/storageService';
 import { useToast } from './Toast';
 import SearchableVerticalSelect from './SearchableVerticalSelect';
-import { VERTICAL_OPTIONS } from '../constants/verticals';
+import { VERTICAL_OPTIONS, parseVerticals, formatVerticals } from '../constants/verticals';
 
 export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) {
   const { addToast } = useToast();
@@ -13,7 +13,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
     phone: '',
     memberAddress: '',
     businessAddress: '',
-    vertical: '',
+    vertical: [],
     customVertical: '',
     profilePhoto: '',
     isActive: true
@@ -23,15 +23,14 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
 
   useEffect(() => {
     if (member) {
-      const recVertical = member.vertical || '';
-      const isStandard = VERTICAL_OPTIONS.includes(recVertical) && recVertical !== 'Other';
+      const parsedVerts = parseVerticals(member.vertical || '');
       setFormData({
         name: member.name || '',
         phone: member.phone || '',
         memberAddress: member.memberAddress || '',
         businessAddress: member.businessAddress || '',
-        vertical: isStandard ? recVertical : (recVertical ? 'Other' : ''),
-        customVertical: isStandard ? '' : (recVertical === 'Other' ? '' : recVertical),
+        vertical: parsedVerts.standard,
+        customVertical: parsedVerts.custom,
         profilePhoto: member.profilePhoto || '',
         isActive: member.isActive !== false
       });
@@ -68,9 +67,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
       return;
     }
 
-    const resolvedVertical = formData.vertical === 'Other'
-      ? (formData.customVertical.trim() || 'Other')
-      : formData.vertical;
+    const resolvedVertical = formatVerticals(formData.vertical, formData.customVertical);
 
     // Auto-calculate status based on field completeness
     const isComplete = Boolean(
@@ -235,7 +232,7 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
               setFormData({
                 ...formData,
                 vertical: val,
-                customVertical: val === 'Other' ? formData.customVertical : ''
+                customVertical: val.includes('Other') ? formData.customVertical : ''
               });
             }}
             customValue={formData.customVertical}

@@ -17,7 +17,7 @@ import { addSingleMember } from '../services/memberService';
 import { uploadProfilePhoto, validateImageFile } from '../services/storageService';
 import { useToast } from './Toast';
 import SearchableVerticalSelect from './SearchableVerticalSelect';
-import { VERTICAL_OPTIONS } from '../constants/verticals';
+import { VERTICAL_OPTIONS, formatVerticals } from '../constants/verticals';
 
 export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
   const { addToast } = useToast();
@@ -28,7 +28,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
     phone: '',
     memberAddress: '',
     businessAddress: '',
-    vertical: '',
+    vertical: [],
     customVertical: '',
     profilePhoto: ''
   });
@@ -101,9 +101,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
 
       setUploadProgress(80);
 
-      const resolvedVertical = formData.vertical === 'Other'
-        ? (formData.customVertical.trim() || 'Other')
-        : formData.vertical;
+      const resolvedVertical = formatVerticals(formData.vertical, formData.customVertical);
 
       // Auto-calculate status based on field completeness
       const isComplete = Boolean(
@@ -139,7 +137,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
           phone: '',
           memberAddress: '',
           businessAddress: '',
-          vertical: '',
+          vertical: [],
           customVertical: '',
           profilePhoto: ''
         });
@@ -316,7 +314,7 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
               setFormData({
                 ...formData,
                 vertical: val,
-                customVertical: val === 'Other' ? formData.customVertical : ''
+                customVertical: val.includes('Other') ? formData.customVertical : ''
               });
             }}
             customValue={formData.customVertical}

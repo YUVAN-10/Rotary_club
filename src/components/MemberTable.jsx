@@ -81,9 +81,9 @@ export default function MemberTable({
 
   const handleToggleMember = onToggleStatus || onDeleteMember;
 
-  // Filtered and searched members
+  // Filtered, searched, and alphabetically sorted members
   const filteredMembers = useMemo(() => {
-    return members.filter((member) => {
+    const list = members.filter((member) => {
       const completed = isMemberCompleted(member);
       const isActive = member.isActive !== false;
 
@@ -93,8 +93,14 @@ export default function MemberTable({
       if (statusFilter === 'Active' && !isActive) return false;
       if (statusFilter === 'Disabled' && isActive) return false;
 
-      // Vertical filter
-      if (verticalFilter !== 'ALL' && member.vertical !== verticalFilter) return false;
+      // Vertical filter (handles single or multi-vertical comma-separated values)
+      if (verticalFilter !== 'ALL') {
+        const memberVerts = (member.vertical || '').split(',').map(s => s.trim().toLowerCase());
+        const target = verticalFilter.toLowerCase();
+        if (!memberVerts.includes(target) && !(member.vertical || '').toLowerCase().includes(target)) {
+          return false;
+        }
+      }
 
       // Search term
       if (!searchTerm.trim()) return true;
@@ -113,6 +119,11 @@ export default function MemberTable({
         vertical.includes(term)
       );
     });
+
+    // Always sort members alphabetically by name A-Z
+    return [...list].sort((a, b) => 
+      (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' })
+    );
   }, [members, searchTerm, statusFilter, verticalFilter]);
 
   // Pagination calculation
@@ -225,10 +236,18 @@ export default function MemberTable({
               >
                 <option value="ALL">All Verticals (100)</option>
                 {Array.from(
-                  new Set([
-                    ...VERTICAL_OPTIONS,
-                    ...members.map((m) => m.vertical).filter(Boolean)
-                  ])
+                  (() => {
+                    const set = new Set(VERTICAL_OPTIONS.filter((v) => v !== 'Other'));
+                    members.forEach((m) => {
+                      if (m.vertical) {
+                        m.vertical.split(',').forEach((v) => {
+                          const trimmed = v.trim();
+                          if (trimmed && trimmed !== 'Other') set.add(trimmed);
+                        });
+                      }
+                    });
+                    return set;
+                  })()
                 ).sort((a, b) => a.localeCompare(b)).map((v) => (
                   <option key={v} value={v}>
                     {v}
@@ -373,9 +392,18 @@ export default function MemberTable({
                     {/* Vertical */}
                     <td className="py-3 px-4">
                       {member.vertical ? (
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${verticalColor}`}>
-                          {member.vertical}
-                        </span>
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {member.vertical.split(',').map((v) => {
+                            const trimmed = v.trim();
+                            if (!trimmed) return null;
+                            const vColor = VERTICAL_COLORS[trimmed] || 'bg-blue-50 text-blue-700 border-blue-200';
+                            return (
+                              <span key={trimmed} className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold border ${vColor}`}>
+                                {trimmed}
+                              </span>
+                            );
+                          })}
+                        </div>
                       ) : (
                         <span className="text-slate-300 text-xs italic">—</span>
                       )}

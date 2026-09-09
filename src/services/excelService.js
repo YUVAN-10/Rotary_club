@@ -170,7 +170,11 @@ export function downloadSampleTemplate() {
  * Export current members list to Excel
  */
 export function exportMembersToExcel(members, fileName = "Rotary_Erode_Central_Members.xlsx") {
-  const exportData = members.map((m, idx) => ({
+  const sortedMembers = [...members].sort((a, b) => 
+    (a.name || '').trim().localeCompare((b.name || '').trim(), undefined, { sensitivity: 'base' })
+  );
+
+  const exportData = sortedMembers.map((m, idx) => ({
     "S.No": idx + 1,
     "Member Name": m.name || "",
     "Phone Number": m.phone || "",
