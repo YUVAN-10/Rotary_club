@@ -11,13 +11,18 @@ import {
   Camera, 
   Upload, 
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  Heart,
+  Cake
 } from 'lucide-react';
 import { addSingleMember } from '../services/memberService';
 import { uploadProfilePhoto, validateImageFile } from '../services/storageService';
 import { useToast } from './Toast';
 import SearchableVerticalSelect from './SearchableVerticalSelect';
+import EasyDatePicker from './EasyDatePicker';
 import { VERTICAL_OPTIONS, formatVerticals } from '../constants/verticals';
+import { formatDateDisplay } from '../utils/dateUtils';
 
 export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
   const { addToast } = useToast();
@@ -26,6 +31,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    dob: '',
+    weddingDate: '',
     memberAddress: '',
     businessAddress: '',
     vertical: [],
@@ -117,6 +124,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
       const res = await addSingleMember({
         name: formData.name.trim(),
         phone: cleanPhone,
+        dob: formData.dob || '',
+        weddingDate: formData.weddingDate || '',
         memberAddress: formData.memberAddress.trim(),
         businessAddress: formData.businessAddress.trim(),
         vertical: resolvedVertical,
@@ -135,6 +144,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
         setFormData({
           name: '',
           phone: '',
+          dob: '',
+          weddingDate: '',
           memberAddress: '',
           businessAddress: '',
           vertical: [],
@@ -167,17 +178,16 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
             </div>
             <div>
               <h3 className="font-display font-bold text-lg leading-tight">
-                Add New Rotary Member
+                Add New Member
               </h3>
               <p className="text-xs text-slate-300">
-                Register a member manually with profile photo
+                Register a new member to Rotary Club of Erode Central
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            disabled={isSubmitting}
-            className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition disabled:opacity-50"
+            className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -186,30 +196,24 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
           
-          {/* Profile Photo Upload Section */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Profile Photo (Optional)
-            </label>
-            <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-slate-400 font-bold">
-                  {photoPreview ? (
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <Camera className="w-7 h-7 text-slate-400" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex-1 space-y-1.5">
+          {/* Photo Preview & Upload */}
+          <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-6 h-6 text-slate-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-slate-700">Member Photo (Optional)</p>
+              <div className="mt-1 flex items-center gap-2">
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg, image/png, image/jpg"
+                  accept="image/jpeg,image/png,image/jpg"
                   className="hidden"
                   onChange={(e) => handlePhotoSelect(e.target.files[0])}
-                  disabled={isSubmitting}
                 />
                 
                 <div className="flex items-center gap-2">
@@ -235,10 +239,6 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
                     </button>
                   )}
                 </div>
-
-                <p className="text-[11px] text-slate-500">
-                  JPG, JPEG, PNG (Auto-compressed for fast saving)
-                </p>
               </div>
             </div>
           </div>
@@ -277,6 +277,29 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }) {
                 className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
               />
             </div>
+          </div>
+
+          {/* Date of Birth & Wedding Date (Easy Selection: Month, Date, Year) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <EasyDatePicker
+              label="Date of Birth"
+              type="dob"
+              value={formData.dob}
+              onChange={(val) => setFormData((prev) => ({ ...prev, dob: val }))}
+              minYear={1930}
+              maxYear={new Date().getFullYear()}
+              compact
+            />
+
+            <EasyDatePicker
+              label="Wedding Date"
+              type="wedding"
+              value={formData.weddingDate}
+              onChange={(val) => setFormData((prev) => ({ ...prev, weddingDate: val }))}
+              minYear={1950}
+              maxYear={new Date().getFullYear() + 1}
+              compact
+            />
           </div>
 
           {/* Member Address */}

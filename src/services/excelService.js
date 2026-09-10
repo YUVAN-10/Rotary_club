@@ -44,6 +44,8 @@ export function parseExcelFile(file) {
           let nameColIdx = 0;
           let phoneColIdx = 1;
           let addrColIdx = 2;
+          let dobColIdx = -1;
+          let weddingDateColIdx = -1;
           let startIndex = 0;
 
           const isHeader = firstRow.some(cell => 
@@ -53,7 +55,12 @@ export function parseExcelFile(file) {
             cell.includes('number') || 
             cell.includes('adder') || 
             cell.includes('address') ||
-            cell.includes('member')
+            cell.includes('member') ||
+            cell.includes('birth') ||
+            cell.includes('dob') ||
+            cell.includes('wedding') ||
+            cell.includes('weeding') ||
+            cell.includes('anniversary')
           );
 
           if (isHeader) {
@@ -61,7 +68,11 @@ export function parseExcelFile(file) {
 
             // Identify column indices based on header names (Address checked first to prevent 'membersadders' matching 'member')
             firstRow.forEach((h, idx) => {
-              if (h.includes('adder') || h.includes('addr') || h.includes('address') || h.includes('residen') || h.includes('street') || h.includes('city') || h.includes('location')) {
+              if (h.includes('birth') || h.includes('dob') || h.includes('bday') || h.includes('birthday')) {
+                dobColIdx = idx;
+              } else if (h.includes('wedding') || h.includes('weeding') || h.includes('anniversary') || h.includes('marriage') || h.includes('marrige')) {
+                weddingDateColIdx = idx;
+              } else if (h.includes('adder') || h.includes('addr') || h.includes('address') || h.includes('residen') || h.includes('street') || h.includes('city') || h.includes('location')) {
                 addrColIdx = idx;
               } else if (h.includes('phone') || h.includes('numer') || h.includes('number') || h.includes('mobile') || h.includes('num') || h.includes('contact') || h.includes('tel')) {
                 phoneColIdx = idx;
@@ -83,6 +94,24 @@ export function parseExcelFile(file) {
             const rawName = String(row[nameColIdx] !== undefined ? row[nameColIdx] : (row[0] || '')).trim();
             const rawPhone = String(row[phoneColIdx] !== undefined ? row[phoneColIdx] : (row[1] || '')).trim();
             const rawAddr = String(row[addrColIdx] !== undefined ? row[addrColIdx] : (row[2] || '')).trim();
+            
+            // Format date if present in Excel
+            const parseDateCell = (val) => {
+              if (!val) return '';
+              if (val instanceof Date) {
+                return val.toISOString().slice(0, 10);
+              }
+              const strVal = String(val).trim();
+              if (/^\d{4}-\d{2}-\d{2}$/.test(strVal)) return strVal;
+              const parsed = Date.parse(strVal);
+              if (!isNaN(parsed)) {
+                return new Date(parsed).toISOString().slice(0, 10);
+              }
+              return strVal;
+            };
+
+            const rawDob = dobColIdx !== -1 && row[dobColIdx] !== undefined ? parseDateCell(row[dobColIdx]) : '';
+            const rawWeddingDate = weddingDateColIdx !== -1 && row[weddingDateColIdx] !== undefined ? parseDateCell(row[weddingDateColIdx]) : '';
 
             // Clean 10 digit phone (strip spaces, symbols like 97869 33499 -> 9786933499)
             const cleanedDigits = rawPhone.replace(/\D/g, '');
@@ -98,6 +127,8 @@ export function parseExcelFile(file) {
                 name: rawName || 'Member',
                 phone: cleanPhone || '',
                 memberAddress: rawAddr,
+                dob: rawDob,
+                weddingDate: rawWeddingDate,
                 isValid: true,
                 validationErrors: []
               });
@@ -130,24 +161,30 @@ export function parseExcelFile(file) {
 }
 
 /**
- * Generates and downloads a sample 3-column template for users
+ * Generates and downloads a sample template for users
  */
 export function downloadSampleTemplate() {
   const sampleData = [
     {
       "MEMBERS NAME": "ASHOK KUMAR .A",
       "PHONE NUMER": "97869 33499",
-      "MEMBERS ADDERS": "138 , MILLAI NAGAR PERUNDURAI ,ERODE - 638052"
+      "MEMBERS ADDERS": "138 , MILLAI NAGAR PERUNDURAI ,ERODE - 638052",
+      "DATE OF BIRTH": "1985-05-15",
+      "WEDDING DATE": "2010-11-20"
     },
     {
       "MEMBERS NAME": "ANADHA KUMAR .S",
       "PHONE NUMER": "98428 38239",
-      "MEMBERS ADDERS": "24 , POONDURAI MAIN ROAD , MULLAMPARAPPU , ERODE - 638115"
+      "MEMBERS ADDERS": "24 , POONDURAI MAIN ROAD , MULLAMPARAPPU , ERODE - 638115",
+      "DATE OF BIRTH": "1982-08-24",
+      "WEDDING DATE": ""
     },
     {
       "MEMBERS NAME": "CHANDRA SEKARAN .SKM",
       "PHONE NUMER": "",
-      "MEMBERS ADDERS": "123, GANDHIJI STREET - 2 KARUR BY PASS ROAD , ERODE - 638002"
+      "MEMBERS ADDERS": "123, GANDHIJI STREET - 2 KARUR BY PASS ROAD , ERODE - 638002",
+      "DATE OF BIRTH": "",
+      "WEDDING DATE": ""
     }
   ];
 
@@ -157,7 +194,9 @@ export function downloadSampleTemplate() {
   worksheet['!cols'] = [
     { wch: 30 }, // Name
     { wch: 20 }, // Phone
-    { wch: 55 }  // Address
+    { wch: 55 }, // Address
+    { wch: 18 }, // Date of birth
+    { wch: 18 }  // Wedding date
   ];
 
   const workbook = XLSX.utils.book_new();
@@ -178,6 +217,8 @@ export function exportMembersToExcel(members, fileName = "Rotary_Erode_Central_M
     "S.No": idx + 1,
     "Member Name": m.name || "",
     "Phone Number": m.phone || "",
+    "Date of Birth": m.dob || m.dateOfBirth || "",
+    "Wedding Date": m.weddingDate || m.anniversaryDate || "",
     "Member Address": m.memberAddress || "",
     "Business Address": m.businessAddress || "",
     "Vertical / Classification": m.vertical || "Not specified",
@@ -190,6 +231,8 @@ export function exportMembersToExcel(members, fileName = "Rotary_Erode_Central_M
   worksheet['!cols'] = [
     { wch: 6 },
     { wch: 26 },
+    { wch: 16 },
+    { wch: 16 },
     { wch: 16 },
     { wch: 35 },
     { wch: 35 },

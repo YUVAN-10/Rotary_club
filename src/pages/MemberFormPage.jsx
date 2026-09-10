@@ -21,14 +21,20 @@ import {
   Trash2,
   Search,
   Users,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  Heart,
+  Cake,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getMemberByPhone, getAllMembers, updateMemberProfile } from '../services/memberService';
 import { uploadProfilePhoto, validateImageFile } from '../services/storageService';
 import { useToast } from '../components/Toast';
 import SearchableVerticalSelect from '../components/SearchableVerticalSelect';
+import EasyDatePicker from '../components/EasyDatePicker';
 import { VERTICAL_OPTIONS, parseVerticals, formatVerticals } from '../constants/verticals';
+import { formatDateDisplay } from '../utils/dateUtils';
 
 export default function MemberFormPage() {
   const [searchParams] = useSearchParams();
@@ -57,6 +63,8 @@ export default function MemberFormPage() {
   // Step 2: All Editable Form fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [dob, setDob] = useState('');
+  const [weddingDate, setWeddingDate] = useState('');
   const [memberAddress, setMemberAddress] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
   const [vertical, setVertical] = useState([]);
@@ -144,6 +152,8 @@ export default function MemberFormPage() {
     setMemberRecord(record);
     setName(record.name || '');
     setPhone(record.phone || '');
+    setDob(record.dob || record.dateOfBirth || '');
+    setWeddingDate(record.weddingDate || record.anniversaryDate || '');
     setMemberAddress(record.memberAddress || '');
     setBusinessAddress(record.businessAddress || '');
     const parsedVerts = parseVerticals(record.vertical || '');
@@ -262,6 +272,8 @@ export default function MemberFormPage() {
       const updateRes = await updateMemberProfile(memberRecord.id, {
         name: name.trim(),
         phone: cleanPhone,
+        dob: dob,
+        weddingDate: weddingDate,
         memberAddress: memberAddress.trim(),
         businessAddress: businessAddress.trim(),
         vertical: resolvedVertical,
@@ -279,6 +291,8 @@ export default function MemberFormPage() {
         ...memberRecord,
         name: name.trim(),
         phone: cleanPhone,
+        dob: dob,
+        weddingDate: weddingDate,
         memberAddress: memberAddress.trim(),
         businessAddress: businessAddress.trim(),
         vertical: resolvedVertical,
@@ -314,6 +328,8 @@ export default function MemberFormPage() {
     setMemberRecord(null);
     setName('');
     setPhone('');
+    setDob('');
+    setWeddingDate('');
     setMemberAddress('');
     setBusinessAddress('');
     setVertical('');
@@ -742,6 +758,27 @@ export default function MemberFormPage() {
                 </div>
               </div>
 
+              {/* Date of Birth & Wedding Date (Easy Selection: Month, Date, Year) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <EasyDatePicker
+                  label="Date of Birth"
+                  type="dob"
+                  value={dob}
+                  onChange={(val) => setDob(val)}
+                  minYear={1930}
+                  maxYear={new Date().getFullYear()}
+                />
+
+                <EasyDatePicker
+                  label="Wedding Date"
+                  type="wedding"
+                  value={weddingDate}
+                  onChange={(val) => setWeddingDate(val)}
+                  minYear={1950}
+                  maxYear={new Date().getFullYear() + 1}
+                />
+              </div>
+
               {/* Residential Address (Editable) */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -871,6 +908,24 @@ export default function MemberFormPage() {
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Mobile Number</span>
                     <p className="font-mono text-slate-800 font-semibold">{submittedData.phone ? `+91 ${submittedData.phone}` : '—'}</p>
                   </div>
+
+                  {submittedData.dob && (
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Date of Birth</span>
+                      <p className="text-slate-800 font-semibold flex items-center gap-1.5">
+                        <span>🎂</span> {formatDateDisplay(submittedData.dob)}
+                      </p>
+                    </div>
+                  )}
+
+                  {submittedData.weddingDate && (
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Wedding Date</span>
+                      <p className="text-slate-800 font-semibold flex items-center gap-1.5">
+                        <span>💍</span> {formatDateDisplay(submittedData.weddingDate)}
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase">Residential Address</span>

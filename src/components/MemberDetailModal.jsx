@@ -13,9 +13,13 @@ import {
   Award,
   Building2,
   UserCheck,
-  UserX
+  UserX,
+  Cake,
+  Heart,
+  Calendar
 } from 'lucide-react';
 import { useToast } from './Toast';
+import { formatDateDisplay } from '../utils/dateUtils';
 
 export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onToggleStatus }) {
   const { addToast } = useToast();
@@ -181,6 +185,42 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onT
                   <span className="text-slate-400 font-normal italic text-sm">Not specified</span>
                 )}
               </div>
+            </div>
+
+            {/* Date of Birth Card */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center gap-2 text-slate-500 mb-1">
+                <Cake className="w-4 h-4 text-amber-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Date of Birth</span>
+              </div>
+              <p className="text-sm font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
+                {(member.dob || member.dateOfBirth) ? (
+                  <>
+                    <span>🎂</span>
+                    <span>{formatDateDisplay(member.dob || member.dateOfBirth)}</span>
+                  </>
+                ) : (
+                  <span className="text-slate-400 font-normal italic text-xs">Not specified</span>
+                )}
+              </p>
+            </div>
+
+            {/* Wedding Date Card */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex items-center gap-2 text-slate-500 mb-1">
+                <Heart className="w-4 h-4 text-rose-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Wedding Anniversary</span>
+              </div>
+              <p className="text-sm font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
+                {(member.weddingDate || member.anniversaryDate) ? (
+                  <>
+                    <span>💍</span>
+                    <span>{formatDateDisplay(member.weddingDate || member.anniversaryDate)}</span>
+                  </>
+                ) : (
+                  <span className="text-slate-400 font-normal italic text-xs">Not specified</span>
+                )}
+              </p>
             </div>
 
             {/* Residential Address Card */}

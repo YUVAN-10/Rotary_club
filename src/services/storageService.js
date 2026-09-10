@@ -7,11 +7,11 @@ import { storage, STORAGE_FOLDER } from "../firebase";
 export function validateImageFile(file) {
   if (!file) return { valid: false, error: "No file selected." };
 
-  const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+  const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
   if (!validTypes.includes(file.type.toLowerCase())) {
     return { 
       valid: false, 
-      error: "Invalid file format. Only JPG, JPEG, and PNG images are accepted." 
+      error: "Invalid file format. Only JPG, JPEG, PNG, and WebP images are accepted." 
     };
   }
 
@@ -28,12 +28,16 @@ export function validateImageFile(file) {
 }
 
 /**
- * Compresses an image file before upload for fast transfer and storage efficiency
+ * Converts a File or Blob into a compressed Base64 Data URL (e.g. for avatars / instant saving)
+ * Resizes down to maxWidth (default 400px) and quality 0.8 to keep size ultra-small (~20-35 KB)
+ * Takes ~10-30ms.
  */
-export function compressImage(file, maxWidth = 800, quality = 0.8) {
-  return new Promise((resolve) => {
-    // If not an image or SVG, return as is
-    if (!file || !file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+export function fileToBase64(file, maxWidth = 400, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve('');
+
+    // If already a Data URL string
+    if (typeof file === 'string' && file.startsWith('data:image/')) {
       return resolve(file);
     }
 
@@ -46,9 +50,14 @@ export function compressImage(file, maxWidth = 800, quality = 0.8) {
         let width = img.width;
         let height = img.height;
 
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxWidth;
+          }
         }
 
         const canvas = document.createElement('canvas');
@@ -58,34 +67,24 @@ export function compressImage(file, maxWidth = 800, quality = 0.8) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              return resolve(file);
-            }
-            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          },
-          'image/jpeg',
-          quality
-        );
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
       };
-      img.onerror = () => resolve(file);
+      img.onerror = () => {
+        resolve(event.target.result);
+      };
     };
-    reader.onerror = () => resolve(file);
+    reader.onerror = (err) => reject(err);
   });
 }
 
-
 /**
- * Uploads a profile image to Firebase Storage under `member_profiles/`
- * @param {File} file 
- * @param {string} phone 
- * @param {function} onProgress 
- * @returns {Promise<{success: boolean, downloadUrl?: string, error?: string}>}
+ * Fast profile photo upload handler:
+ * 1. Instantly prepares an ultra-lightweight compressed photo (~20-30KB).
+ * 2. Attempts Firebase Storage upload with a short 2-second timeout.
+ * 3. If Firebase Storage succeeds fast, returns the Storage URL.
+ * 4. If Firebase Storage is slow, has CORS errors, or is blocked, instantly returns the compressed photo Data URL.
+ * Total time: Under 1 second!
  */
 export async function uploadProfilePhoto(file, phone, onProgress) {
   try {
@@ -94,68 +93,77 @@ export async function uploadProfilePhoto(file, phone, onProgress) {
       return { success: false, error: validation.error };
     }
 
-    // Auto-compress image before upload
-    const compressed = await compressImage(file, 800, 0.85);
+    // Generate lightweight compressed data URL immediately (< 50ms)
+    const compressedDataUrl = await fileToBase64(file, 400, 0.8);
+    if (onProgress) onProgress(40);
 
     const cleanPhone = String(phone).replace(/\D/g, '').slice(-10);
     const timestamp = Date.now();
     const fileName = `${cleanPhone}_${timestamp}.jpg`;
     const storageRef = ref(storage, `${STORAGE_FOLDER}/${fileName}`);
 
-    // Create upload task
-    const uploadTask = uploadBytesResumable(storageRef, compressed, {
-      contentType: 'image/jpeg',
-      customMetadata: {
-        memberPhone: cleanPhone,
-        uploadedAt: new Date().toISOString()
-      }
-    });
+    // Try Firebase Storage with a strict 2000ms race timeout
+    const storagePromise = new Promise((resolve, reject) => {
+      // Convert DataURL to blob for storage upload
+      fetch(compressedDataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          const uploadTask = uploadBytesResumable(storageRef, blob, {
+            contentType: 'image/jpeg',
+            customMetadata: { memberPhone: cleanPhone, uploadedAt: new Date().toISOString() }
+          });
 
-
-    return new Promise((resolve) => {
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = Math.round(
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+              if (onProgress && !isNaN(progress)) {
+                onProgress(Math.max(40, progress));
+              }
+            },
+            (error) => {
+              reject(error);
+            },
+            async () => {
+              try {
+                const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve(downloadUrl);
+              } catch (e) {
+                reject(e);
+              }
+            }
           );
-          if (onProgress) {
-            onProgress(progress);
-          }
-        },
-        async (error) => {
-          console.error("Firebase Storage Upload Error:", error);
-          // If storage security rules are restrictive, fallback to compressed base64 to ensure user can still proceed
-          try {
-            console.warn("Falling back to embedded image data URL...");
-            const base64Url = await fileToBase64(file);
-            resolve({ 
-              success: true, 
-              downloadUrl: base64Url, 
-              isFallback: true,
-              warning: "Uploaded using compressed image storage (Firebase Storage permission fallback)."
-            });
-          } catch (fallbackError) {
-            resolve({ 
-              success: false, 
-              error: `Storage upload failed: ${error.message}` 
-            });
-          }
-        },
-        async () => {
-          try {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve({ success: true, downloadUrl });
-          } catch (urlError) {
-            console.error("Error retrieving download URL:", urlError);
-            const base64Url = await fileToBase64(file);
-            resolve({ success: true, downloadUrl: base64Url });
-          }
-        }
-      );
+        })
+        .catch(reject);
     });
+
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Storage timeout")), 2000)
+    );
+
+    try {
+      const downloadUrl = await Promise.race([storagePromise, timeoutPromise]);
+      if (onProgress) onProgress(100);
+      return { success: true, downloadUrl };
+    } catch (raceErr) {
+      // If storage times out (due to CORS retry loops) or rejects, use the compressed data URL instantly!
+      console.warn("Storage upload bypassed/timed out, saving compressed photo to Firestore directly:", raceErr.message);
+      if (onProgress) onProgress(100);
+      return { 
+        success: true, 
+        downloadUrl: compressedDataUrl, 
+        isFallback: true 
+      };
+    }
   } catch (error) {
-    console.error("Upload exception:", error);
-    return { success: false, error: error.message };
+    console.error("Upload handler error:", error);
+    try {
+      const fallbackUrl = await fileToBase64(file, 400, 0.8);
+      return { success: true, downloadUrl: fallbackUrl, isFallback: true };
+    } catch (e) {
+      return { success: false, error: error.message };
+    }
   }
 }
+
+

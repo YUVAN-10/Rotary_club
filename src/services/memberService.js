@@ -111,6 +111,8 @@ export async function addSingleMember(memberData) {
       businessAddress: memberData.businessAddress ? memberData.businessAddress.trim() : "",
       vertical: memberData.vertical || "",
       profilePhoto: memberData.profilePhoto || "",
+      dob: memberData.dob || memberData.dateOfBirth || "",
+      weddingDate: memberData.weddingDate || memberData.anniversaryDate || "",
       status: memberData.status || "Pending",
       isActive: memberData.isActive !== false,
       createdAt: serverTimestamp(),
@@ -153,6 +155,8 @@ export async function bulkUploadMembers(records, onProgress) {
       const cleanPhone = String(row.phone || "").trim().replace(/\D/g, '').slice(-10);
       const cleanName = String(row.name || "").trim();
       const cleanAddress = String(row.memberAddress || "").trim();
+      const cleanDob = String(row.dob || row.dateOfBirth || "").trim();
+      const cleanWeddingDate = String(row.weddingDate || row.anniversaryDate || "").trim();
 
       // If completely empty row, skip
       if (!cleanName && !cleanPhone && !cleanAddress) {
@@ -189,6 +193,8 @@ export async function bulkUploadMembers(records, onProgress) {
         businessAddress: "",
         vertical: "",
         profilePhoto: "",
+        dob: cleanDob,
+        weddingDate: cleanWeddingDate,
         status: "Pending",
         isActive: true,
         createdAt: serverTimestamp(),
@@ -233,7 +239,7 @@ export async function bulkUploadMembers(records, onProgress) {
 }
 
 /**
- * Public Member Submission: Update profile with name, phone, memberAddress, business address, vertical, photo URL, status = Completed
+ * Public Member Submission: Update profile with name, phone, memberAddress, business address, vertical, photo URL, dob, weddingDate, status = Completed
  */
 export async function updateMemberProfile(memberId, profileData) {
   try {
@@ -244,6 +250,8 @@ export async function updateMemberProfile(memberId, profileData) {
       businessAddress: profileData.businessAddress ? profileData.businessAddress.trim() : "",
       vertical: profileData.vertical || "",
       profilePhoto: profileData.profilePhoto || "",
+      dob: profileData.dob || profileData.dateOfBirth || "",
+      weddingDate: profileData.weddingDate || profileData.anniversaryDate || "",
       status: "Completed",
       updatedAt: serverTimestamp()
     };
@@ -277,6 +285,8 @@ export async function updateMemberAdmin(memberId, memberData) {
       businessAddress: memberData.businessAddress ? memberData.businessAddress.trim() : "",
       vertical: memberData.vertical || "",
       profilePhoto: memberData.profilePhoto || "",
+      dob: memberData.dob || memberData.dateOfBirth || "",
+      weddingDate: memberData.weddingDate || memberData.anniversaryDate || "",
       status: memberData.status || "Pending",
       isActive: memberData.isActive !== false,
       updatedAt: serverTimestamp()

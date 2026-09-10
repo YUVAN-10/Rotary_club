@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit3, Check, RefreshCw, Upload, Camera } from 'lucide-react';
+import { X, Edit3, Check, RefreshCw, Upload, Camera, Calendar, Heart, Cake } from 'lucide-react';
 import { updateMemberAdmin } from '../services/memberService';
 import { uploadProfilePhoto } from '../services/storageService';
 import { useToast } from './Toast';
 import SearchableVerticalSelect from './SearchableVerticalSelect';
+import EasyDatePicker from './EasyDatePicker';
 import { VERTICAL_OPTIONS, parseVerticals, formatVerticals } from '../constants/verticals';
+import { formatDateDisplay } from '../utils/dateUtils';
 
 export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) {
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    dob: '',
+    weddingDate: '',
     memberAddress: '',
     businessAddress: '',
     vertical: [],
@@ -27,6 +31,8 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
       setFormData({
         name: member.name || '',
         phone: member.phone || '',
+        dob: member.dob || member.dateOfBirth || '',
+        weddingDate: member.weddingDate || member.anniversaryDate || '',
         memberAddress: member.memberAddress || '',
         businessAddress: member.businessAddress || '',
         vertical: parsedVerts.standard,
@@ -83,6 +89,8 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
     const res = await updateMemberAdmin(member.id, {
       name: formData.name.trim(),
       phone: cleanPhone,
+      dob: formData.dob || '',
+      weddingDate: formData.weddingDate || '',
       memberAddress: formData.memberAddress.trim(),
       businessAddress: formData.businessAddress.trim(),
       vertical: resolvedVertical,
@@ -197,6 +205,29 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
                 className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
               />
             </div>
+          </div>
+
+          {/* Date of Birth & Wedding Date (Easy Selection: Month, Date, Year) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <EasyDatePicker
+              label="Date of Birth"
+              type="dob"
+              value={formData.dob}
+              onChange={(val) => setFormData((prev) => ({ ...prev, dob: val }))}
+              minYear={1930}
+              maxYear={new Date().getFullYear()}
+              compact
+            />
+
+            <EasyDatePicker
+              label="Wedding Date"
+              type="wedding"
+              value={formData.weddingDate}
+              onChange={(val) => setFormData((prev) => ({ ...prev, weddingDate: val }))}
+              minYear={1950}
+              maxYear={new Date().getFullYear() + 1}
+              compact
+            />
           </div>
 
           {/* Member Address */}

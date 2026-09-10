@@ -110,13 +110,17 @@ export default function MemberTable({
       const memberAddr = (member.memberAddress || '').toLowerCase();
       const busAddr = (member.businessAddress || '').toLowerCase();
       const vertical = (member.vertical || '').toLowerCase();
+      const dob = (member.dob || member.dateOfBirth || '').toLowerCase();
+      const weddingDate = (member.weddingDate || member.anniversaryDate || '').toLowerCase();
 
       return (
         name.includes(term) ||
         phone.includes(term) ||
         memberAddr.includes(term) ||
         busAddr.includes(term) ||
-        vertical.includes(term)
+        vertical.includes(term) ||
+        dob.includes(term) ||
+        weddingDate.includes(term)
       );
     });
 
