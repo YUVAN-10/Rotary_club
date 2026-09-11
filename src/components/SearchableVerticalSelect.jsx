@@ -77,8 +77,21 @@ export default function SearchableVerticalSelect({
     return counts;
   }, []);
 
+  // Handle typing in search box
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+    const trimmed = val.trim();
+    if (trimmed.length === 1 && /^[a-zA-Z]$/.test(trimmed)) {
+      setSelectedLetter(trimmed.toUpperCase());
+    } else if (trimmed.length === 0 && selectedLetter !== 'SELECTED') {
+      setSelectedLetter('ALL');
+    }
+  };
+
   // Filter options based on letter, search, and selected tab
   const filteredOptions = useMemo(() => {
+    const trimmedSearch = searchTerm.trim().toLowerCase();
+
     return VERTICAL_OPTIONS.filter((opt) => {
       if (!opt) return false;
 
@@ -87,19 +100,39 @@ export default function SearchableVerticalSelect({
         return selectedValues.includes(opt);
       }
 
-      // Filter by letter
+      // If user typed search query
+      if (trimmedSearch) {
+        // If single letter typed, show ONLY categories starting with that first letter
+        if (trimmedSearch.length === 1) {
+          return opt.toLowerCase().startsWith(trimmedSearch);
+        }
+
+        // For multi-letter search: match if category starts with query or word in category starts with query
+        const optLower = opt.toLowerCase();
+        const startsWithMatch = optLower.startsWith(trimmedSearch);
+        const words = optLower.split(/[\s&/,-]+/);
+        const wordStartsMatch = words.some(w => w.startsWith(trimmedSearch));
+        const includesMatch = optLower.includes(trimmedSearch);
+
+        return startsWithMatch || wordStartsMatch || includesMatch;
+      }
+
+      // Filter by letter tab (when search box is empty)
       if (selectedLetter !== 'ALL') {
         if (opt === 'Other') return selectedLetter === 'OTHER';
         if (opt.charAt(0).toUpperCase() !== selectedLetter) return false;
       }
 
-      // Filter by search query
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase();
-        return opt.toLowerCase().includes(query);
-      }
-
       return true;
+    }).sort((a, b) => {
+      // Prioritize items starting with search term
+      if (trimmedSearch) {
+        const aStarts = a.toLowerCase().startsWith(trimmedSearch);
+        const bStarts = b.toLowerCase().startsWith(trimmedSearch);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+      }
+      return a.localeCompare(b);
     });
   }, [searchTerm, selectedLetter, selectedValues]);
 
@@ -246,14 +279,14 @@ export default function SearchableVerticalSelect({
                 ref={searchInputRef}
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search categories (e.g. Textile, Solar, Health, Auto...)"
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Type first letter (e.g. A, T) or search category..."
                 className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue text-slate-800 placeholder:text-slate-400 shadow-sm"
               />
               {searchTerm && (
                 <button
                   type="button"
-                  onClick={() => setSearchTerm('')}
+                  onClick={() => handleSearchChange('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
                 >
                   <X className="w-3.5 h-3.5" />
