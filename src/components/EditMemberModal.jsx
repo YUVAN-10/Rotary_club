@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit3, Check, RefreshCw, Upload, Camera, Calendar, Heart, Cake } from 'lucide-react';
+import { 
+  X, 
+  Edit3, 
+  Check, 
+  RefreshCw, 
+  Upload, 
+  Camera, 
+  Calendar, 
+  Heart, 
+  Cake,
+  ArrowLeft,
+  Trash2,
+  Phone,
+  AlertCircle
+} from 'lucide-react';
 import { updateMemberAdmin } from '../services/memberService';
 import { uploadProfilePhoto } from '../services/storageService';
 import { useToast } from './Toast';
@@ -110,242 +124,299 @@ export default function EditMemberModal({ isOpen, member, onClose, onSuccess }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-        
-        {/* Header */}
-        <div className="bg-gradient-to-r from-rotary-navy to-rotary-royal px-6 py-4 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-rotary-gold/20 text-rotary-goldLight">
-              <Edit3 className="w-5 h-5" />
-            </div>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-100 flex flex-col w-full h-full min-h-screen animate-in fade-in duration-200">
+      
+      {/* Full Page Top Header Bar */}
+      <header className="bg-rotary-navy text-white border-b border-slate-800 flex-shrink-0 sticky top-0 z-30 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 -ml-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition flex items-center gap-2 text-sm font-semibold"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 text-rotary-gold" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
+            <div className="h-6 w-px bg-white/20 hidden sm:block"></div>
             <div>
-              <h3 className="font-display font-bold text-lg leading-tight">
+              <h1 className="font-display font-bold text-lg sm:text-2xl text-white leading-tight">
                 Edit Member Profile
-              </h3>
-              <p className="text-xs text-slate-300">
-                Update details for {member.name || member.phone}
+              </h1>
+              <p className="text-xs text-slate-300 hidden sm:block">
+                Rotary Club of Erode Central • Update details for {member.name || member.phone}
               </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+      </header>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+      {/* Full Page Content Area */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full pb-32">
+        <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* Photo Preview & Change */}
-          <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow">
-              {formData.profilePhoto ? (
-                <img src={formData.profilePhoto} alt="Preview" className="w-full h-full object-cover" />
-              ) : (
-                <Camera className="w-6 h-6 text-slate-400" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-slate-700">Member Photo</p>
-              <label className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-sm">
-                <Upload className="w-3.5 h-3.5 text-rotary-navy" />
-                <span>{isUploadingPhoto ? 'Uploading...' : 'Change Photo'}</span>
+          <div className="space-y-6">
+            
+            {/* CARD 1: Personal Details & Contact */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+              <div className="border-b border-slate-100 pb-3">
+                <h2 className="text-base sm:text-lg font-bold font-display text-slate-800">
+                  Personal & Contact Details
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Member profile photo, name, phone, and key anniversary dates
+                </p>
+              </div>
+
+              {/* Photo Preview & Change */}
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200">
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Member Photo
+                </p>
+                <div className="flex flex-col sm:flex-row items-center gap-5">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow">
+                    {formData.profilePhoto ? (
+                      <img src={formData.profilePhoto} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-10 h-10 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-center sm:text-left space-y-2">
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rotary-navy text-white text-xs font-bold hover:bg-rotary-darkBlue cursor-pointer shadow-sm active:scale-95 transition">
+                        <Upload className="w-3.5 h-3.5 text-rotary-gold" />
+                        <span>{isUploadingPhoto ? 'Uploading Photo...' : 'Change Photo'}</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg"
+                          className="hidden"
+                          onChange={(e) => handlePhotoUpload(e.target.files[0])}
+                          disabled={isUploadingPhoto}
+                        />
+                      </label>
+                      {formData.profilePhoto && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, profilePhoto: '' })}
+                          className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Formats: <span className="font-semibold text-slate-700">JPG, JPEG, PNG</span> (Auto-compressed)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Member Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Member Name <span className="text-rose-500">*</span>
+                </label>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/jpg"
-                  className="hidden"
-                  onChange={(e) => handlePhotoUpload(e.target.files[0])}
-                  disabled={isUploadingPhoto}
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white shadow-sm"
                 />
-              </label>
-              {formData.profilePhoto && (
+              </div>
+
+              {/* Mobile Number */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Mobile Number (10-digit) <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
+                    +91
+                  </span>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                    className="w-full pl-14 pr-4 py-3 rounded-2xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Date of Birth & Wedding Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <EasyDatePicker
+                  label="Date of Birth"
+                  type="dob"
+                  value={formData.dob}
+                  onChange={(val) => setFormData((prev) => ({ ...prev, dob: val }))}
+                  minYear={1930}
+                  maxYear={new Date().getFullYear()}
+                />
+
+                <EasyDatePicker
+                  label="Wedding Date"
+                  type="wedding"
+                  value={formData.weddingDate}
+                  onChange={(val) => setFormData((prev) => ({ ...prev, weddingDate: val }))}
+                  minYear={1950}
+                  maxYear={new Date().getFullYear() + 1}
+                />
+              </div>
+
+            </div>
+
+            {/* RIGHT CARD: Addresses, Verticals & Account Status */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+              <div className="border-b border-slate-100 pb-3">
+                <h2 className="text-base sm:text-lg font-bold font-display text-slate-800">
+                  Address & Account Status
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Residential address, office location, business category & account accessibility
+                </p>
+              </div>
+
+              {/* Member Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Residential / Member Address
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.memberAddress}
+                  onChange={(e) => setFormData({ ...formData, memberAddress: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white shadow-sm"
+                />
+              </div>
+
+              {/* Business Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Business Address
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.businessAddress}
+                  onChange={(e) => setFormData({ ...formData, businessAddress: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue bg-white shadow-sm"
+                />
+              </div>
+
+              {/* Vertical searchable dropdown */}
+              <SearchableVerticalSelect
+                value={formData.vertical}
+                onChange={(val) => {
+                  setFormData({
+                    ...formData,
+                    vertical: val,
+                    customVertical: val.includes('Other') ? formData.customVertical : ''
+                  });
+                }}
+                customValue={formData.customVertical}
+                onCustomChange={(customVal) => {
+                  setFormData({
+                    ...formData,
+                    customVertical: customVal
+                  });
+                }}
+                label="Vertical / Sector"
+              />
+
+              {/* Account Status */}
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Account Status
+                </label>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isActive"
+                      checked={formData.isActive === true}
+                      onChange={() => setFormData({ ...formData, isActive: true })}
+                      className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      Active (Enabled)
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isActive"
+                      checked={formData.isActive === false}
+                      onChange={() => setFormData({ ...formData, isActive: false })}
+                      className="w-4 h-4 text-rose-600 focus:ring-rose-500"
+                    />
+                    <span className="flex items-center gap-1.5 text-rose-700 font-bold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                      Disabled
+                    </span>
+                  </label>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-2">
+                  Disabled members cannot access or submit their profile form.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Fixed Floating Bottom Action Bar */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-4 px-4 sm:px-8 shadow-2xl z-30">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              <p className="text-xs text-slate-500 hidden sm:block">
+                Editing Member ID: <span className="font-mono font-bold text-slate-700">{member.id}</span>
+              </p>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, profilePhoto: '' })}
-                  className="ml-2 text-xs text-rose-500 hover:underline"
+                  onClick={onClose}
+                  className="px-6 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition"
                 >
-                  Remove
+                  Cancel
                 </button>
-              )}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-8 py-3 rounded-2xl text-sm font-bold bg-rotary-navy text-white hover:bg-rotary-darkBlue active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 text-rotary-gold" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-
-          {/* Member Name */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Member Name <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
-            />
-          </div>
-
-          {/* Mobile Number */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Mobile Number (10-digit) <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                +91
-              </span>
-              <input
-                type="tel"
-                required
-                maxLength={10}
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
-                className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
-              />
-            </div>
-          </div>
-
-          {/* Date of Birth & Wedding Date (Easy Selection: Month, Date, Year) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <EasyDatePicker
-              label="Date of Birth"
-              type="dob"
-              value={formData.dob}
-              onChange={(val) => setFormData((prev) => ({ ...prev, dob: val }))}
-              minYear={1930}
-              maxYear={new Date().getFullYear()}
-              compact
-            />
-
-            <EasyDatePicker
-              label="Wedding Date"
-              type="wedding"
-              value={formData.weddingDate}
-              onChange={(val) => setFormData((prev) => ({ ...prev, weddingDate: val }))}
-              minYear={1950}
-              maxYear={new Date().getFullYear() + 1}
-              compact
-            />
-          </div>
-
-          {/* Member Address */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Residential / Member Address
-            </label>
-            <textarea
-              rows={2}
-              value={formData.memberAddress}
-              onChange={(e) => setFormData({ ...formData, memberAddress: e.target.value })}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
-            />
-          </div>
-
-          {/* Business Address */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Business Address
-            </label>
-            <textarea
-              rows={2}
-              value={formData.businessAddress}
-              onChange={(e) => setFormData({ ...formData, businessAddress: e.target.value })}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-rotary-gold/50 focus:border-rotary-darkBlue"
-            />
-          </div>
-
-          {/* Vertical searchable dropdown */}
-          <SearchableVerticalSelect
-            value={formData.vertical}
-            onChange={(val) => {
-              setFormData({
-                ...formData,
-                vertical: val,
-                customVertical: val.includes('Other') ? formData.customVertical : ''
-              });
-            }}
-            customValue={formData.customVertical}
-            onCustomChange={(customVal) => {
-              setFormData({
-                ...formData,
-                customVertical: customVal
-              });
-            }}
-            label="Vertical / Sector"
-          />
-
-          {/* Account Status */}
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Account Status
-            </label>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="isActive"
-                  checked={formData.isActive === true}
-                  onChange={() => setFormData({ ...formData, isActive: true })}
-                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
-                />
-                <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Active (Enabled)
-                </span>
-              </label>
-
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="isActive"
-                  checked={formData.isActive === false}
-                  onChange={() => setFormData({ ...formData, isActive: false })}
-                  className="w-4 h-4 text-rose-600 focus:ring-rose-500"
-                />
-                <span className="flex items-center gap-1 text-rose-700 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  Disabled
-                </span>
-              </label>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1.5">
-              Disabled members cannot access or submit their profile form.
-            </p>
-          </div>
-
-          {/* Footer buttons */}
-          <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-rotary-navy text-white hover:bg-rotary-darkBlue active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Updating...</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 text-rotary-gold" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
           </div>
 
         </form>
+      </main>
 
-      </div>
     </div>
   );
 }

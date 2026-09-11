@@ -49,7 +49,7 @@ export default function MemberDetailModal({ isOpen, member, onClose, onEdit, onT
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden relative flex flex-col">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden relative flex flex-col">
         
         {/* Top Decorative Card Banner */}
         <div className="bg-gradient-to-r from-rotary-navy via-rotary-darkBlue to-rotary-royal px-6 sm:px-8 pt-8 pb-16 text-white relative">

@@ -273,23 +273,22 @@ export default function MemberTable({
               <th className="py-3.5 px-4">Member Name</th>
               <th className="py-3.5 px-4">Phone Number</th>
               <th className="py-3.5 px-4 hidden md:table-cell">Member Address</th>
-              <th className="py-3.5 px-4 hidden lg:table-cell">Business Address</th>
               <th className="py-3.5 px-4">Vertical</th>
               <th className="py-3.5 px-4 text-center">Status</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
+              <th className="py-3.5 px-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {isLoading ? (
               <tr>
-                <td colSpan="8" className="py-16 text-center text-slate-400">
+                <td colSpan="7" className="py-16 text-center text-slate-400">
                   <div className="inline-block w-8 h-8 border-4 border-rotary-gold border-t-transparent rounded-full animate-spin mb-3"></div>
                   <p className="font-medium">Loading Rotary member directory...</p>
                 </td>
               </tr>
             ) : paginatedMembers.length === 0 ? (
               <tr>
-                <td colSpan="8" className="py-16 text-center text-slate-500">
+                <td colSpan="7" className="py-16 text-center text-slate-500">
                   <div className="max-w-sm mx-auto space-y-3">
                     <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
                       <Search className="w-6 h-6" />
@@ -329,7 +328,7 @@ export default function MemberTable({
                 return (
                   <tr 
                     key={member.id}
-                    className={`hover:bg-blue-50/40 transition-colors ${
+                    className={`hover:bg-blue-50/40 transition-colors group ${
                       !isEnabled ? 'bg-slate-50/75 opacity-75' : ''
                     }`}
                   >
@@ -388,11 +387,6 @@ export default function MemberTable({
                       {member.memberAddress || <span className="text-slate-300 italic">Not set</span>}
                     </td>
 
-                    {/* Business Address */}
-                    <td className="py-3 px-4 hidden lg:table-cell text-slate-600 text-xs max-w-xs truncate" title={member.businessAddress}>
-                      {member.businessAddress || <span className="text-slate-300 italic">—</span>}
-                    </td>
-
                     {/* Vertical */}
                     <td className="py-3 px-4">
                       {member.vertical ? (
@@ -436,14 +430,34 @@ export default function MemberTable({
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center gap-1">
+                    <td className="py-3 px-4 text-center whitespace-nowrap">
+                      <div className="inline-flex items-center justify-center gap-1.5">
                         
+                        {/* View Button */}
+                        <button
+                          onClick={() => onViewMember(member)}
+                          title="View Member ID Card & Details"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/90 active:scale-95 transition shadow-xs"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-blue-600" />
+                          <span>View</span>
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => onEditMember(member)}
+                          title="Edit Member Profile"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 active:scale-95 transition shadow-xs"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Edit</span>
+                        </button>
+
                         {/* Copy direct link */}
                         <button
                           onClick={() => handleCopyDirectLink(member.phone, member.id)}
-                          title="Copy direct form link for this member"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rotary-royal hover:bg-slate-100 transition"
+                          title="Copy member form direct link"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rotary-navy hover:bg-slate-100 border border-transparent hover:border-slate-200 transition"
                         >
                           {copiedId === member.id ? (
                             <Check className="w-4 h-4 text-emerald-600" />
@@ -452,32 +466,14 @@ export default function MemberTable({
                           )}
                         </button>
 
-                        {/* View card */}
-                        <button
-                          onClick={() => onViewMember(member)}
-                          title="View Member ID Card"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        {/* Edit member */}
-                        <button
-                          onClick={() => onEditMember(member)}
-                          title="Edit Member"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-
                         {/* Enable / Disable Member */}
                         <button
                           onClick={() => handleToggleMember?.(member)}
                           title={isEnabled ? "Disable Member" : "Enable Member"}
-                          className={`p-1.5 rounded-lg transition ${
+                          className={`p-1.5 rounded-lg border transition ${
                             isEnabled
-                              ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                              : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700'
+                              ? 'text-slate-400 border-transparent hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200'
+                              : 'text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700'
                           }`}
                         >
                           {isEnabled ? (
